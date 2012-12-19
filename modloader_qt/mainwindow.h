@@ -2,7 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <configmodifier.h>
+
+#include <modmanager.h>
 
 namespace Ui {
 class MainWindow;
@@ -19,7 +20,7 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    ConfigModifier config;
+    ModManager* modManager;
 };
 
 #endif // MAINWINDOW_H

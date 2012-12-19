@@ -8,7 +8,8 @@
 
 ConfigModifier::ConfigModifier()
 {
-    MOD_HEADER = "[Mods]";
+    MOD_HEADER = "#[Mods]"; //not commenting out will result in TDL ignoring mods section
+    MODS_DIR = "mods/";
     m_version = -1;
 }
 
@@ -19,10 +20,10 @@ ConfigModifier::~ConfigModifier()
         delete m_modList[i];
 }
 
-int ConfigModifier::init(QString versionFileName, QString pluginsFileName, QString resourcesFileName)
+ErrorCode ConfigModifier::init(const QString &versionFilename, const QString &pluginsFilename, const QString &resourcesFilename, QVector<QString>& activeMods)
 {
     // Read version
-    QFile versionFile(versionFileName);
+    QFile versionFile(versionFilename);
     if(!versionFile.open(QIODevice::ReadOnly | QIODevice::Text))
         return Error::FAILED_OPEN_VERSION_FILE;
     QTextStream versionIn(&versionFile);
@@ -32,10 +33,10 @@ int ConfigModifier::init(QString versionFileName, QString pluginsFileName, QStri
     versionFile.close();
 
     // Load config files
-    m_pluginsFileName = pluginsFileName;
-    m_resourcesFileName = resourcesFileName;
-    QFile vanillaPluginsFile(m_pluginsFileName);
-    QFile vanillaResourcesFile(m_resourcesFileName);
+    m_pluginsFilename = pluginsFilename;
+    m_resourcesFilename = resourcesFilename;
+    QFile vanillaPluginsFile(m_pluginsFilename);
+    QFile vanillaResourcesFile(m_resourcesFilename);
     if(!vanillaPluginsFile.open(QIODevice::ReadOnly | QIODevice::Text))
         return Error::FAILED_OPEN_PLUGINS_FILE;
     if(!vanillaResourcesFile.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -44,17 +45,35 @@ int ConfigModifier::init(QString versionFileName, QString pluginsFileName, QStri
     QTextStream resourcesIn(&vanillaResourcesFile);
     while(!pluginsIn.atEnd())
     {
-        QString temp = pluginsIn.readLine();
-        if(temp.contains(MOD_HEADER, Qt::CaseInsensitive))
+        QString line = pluginsIn.readLine();
+        if(line.contains(MOD_HEADER, Qt::CaseInsensitive))
             break;
-        m_vanillaPlugins.push_back(temp);
+        m_vanillaPlugins.push_back(line);
+        // PLUGINS DO NOT LOAD INTO MOD LIST YET, RATHER MOD MANAGER WILL FIGURE THAT OUT FOR NOW
     }
+    bool vanilla = true;
     while(!resourcesIn.atEnd())
     {
-        QString temp = resourcesIn.readLine();
-        if(temp.contains(MOD_HEADER, Qt::CaseInsensitive))
-            break;
-        m_vanillaResources.push_back(temp);
+        QString line = resourcesIn.readLine();
+        if(line.contains(MOD_HEADER, Qt::CaseInsensitive))
+            vanilla = false;
+
+        if(vanilla)
+            m_vanillaResources.push_back(line);
+        else
+        {
+            // Load into mod list since enabled
+            if(line.contains("FileSystem=./" + MODS_DIR, Qt::CaseInsensitive))
+            {
+                line.truncate(QString("FileSystem=./").length());
+                int index = 0;
+                while(line[index] != QChar('/'))
+                    index++;
+                line.truncate(index);
+                QString modName = line;
+                activeMods.push_back(modName);
+            }
+        }
     }
     vanillaPluginsFile.close();
     vanillaResourcesFile.close();
@@ -67,7 +86,7 @@ int ConfigModifier::getVersion()
     return m_version;
 }
 
-int ConfigModifier::addPlugin(int mod, QString modName, QString plugin)
+int ConfigModifier::addPlugin(int mod, const QString& modName, const QString& plugin)
 {
     if(mod < m_modList.size() && mod >= 0)
     {
@@ -77,7 +96,7 @@ int ConfigModifier::addPlugin(int mod, QString modName, QString plugin)
     }
     else
     {
-        Mod* m = new Mod;
+        ModConfig* m = new ModConfig;
         m->name = modName;
         m->plugins.push_back(plugin);
         m_modList.push_back(m);
@@ -85,7 +104,7 @@ int ConfigModifier::addPlugin(int mod, QString modName, QString plugin)
     }
 }
 
-int ConfigModifier::addResource(int mod, QString modName, QString resource)
+int ConfigModifier::addResource(int mod, const QString &modName, const QString &resource)
 {
     if(mod < m_modList.size() && mod >= 0)
     {
@@ -95,7 +114,7 @@ int ConfigModifier::addResource(int mod, QString modName, QString resource)
     }
     else
     {
-        Mod* m = new Mod;
+        ModConfig* m = new ModConfig;
         m->name = modName;
         m->resources.push_back(resource);
         m_modList.push_back(m);
@@ -103,10 +122,10 @@ int ConfigModifier::addResource(int mod, QString modName, QString resource)
     }
 }
 
-int ConfigModifier::save()
+ErrorCode ConfigModifier::save()
 {
-    QFile pluginsFile(m_pluginsFileName);
-    QFile resourcesFile(m_resourcesFileName);
+    QFile pluginsFile(m_pluginsFilename);
+    QFile resourcesFile(m_resourcesFilename);
     if(!pluginsFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
         return Error::FAILED_OPEN_PLUGINS_FILE;
     if(!resourcesFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
@@ -132,7 +151,7 @@ int ConfigModifier::save()
         for(int j=0; j<m_modList[i]->plugins.size(); j++)
             pluginsOut << "#Plugin=" << m_modList[i]->plugins[j] << endl;
         for(int j=0; j<m_modList[i]->resources.size(); j++)
-            resourcesOut << "FileSystem=./mods/" << m_modList[i]->name << "/" << m_modList[i]->resources[j] << endl;
+            resourcesOut << "FileSystem=./" << MODS_DIR << m_modList[i]->name << "/data/" << m_modList[i]->resources[j] << endl;
     }
 
     pluginsFile.close();
@@ -145,7 +164,7 @@ void ConfigModifier::swap(int mod1, int mod2)
 {
     if(mod1 != mod2 && mod1 < m_modList.size() && mod2 < m_modList.size() && mod1 >= 0 && mod2 >= 0)
     {
-        Mod* temp = m_modList[mod1];
+        ModConfig* temp = m_modList[mod1];
         m_modList[mod1] = m_modList[mod2];
         m_modList[mod2] = temp;
     }

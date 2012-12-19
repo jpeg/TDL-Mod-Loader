@@ -14,10 +14,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    configmodifier.cpp
+    configmodifier.cpp \
+    modmanager.cpp
 
 HEADERS  += mainwindow.h \
     configmodifier.h \
-    errorcodes.h
+    errorcodes.h \
+    modmanager.h
 
 FORMS    += mainwindow.ui

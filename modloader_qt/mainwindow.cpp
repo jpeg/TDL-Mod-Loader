@@ -9,25 +9,72 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    int error = config.init("C:\\Users\\Jason\\AppData\\Roaming\\Sandswept Studios\\The Dead Linger\\tdlversion.txt", "C:\\Sandswept Studios\\The Dead Linger Alpha\\Plugins.cfg", "C:\\Sandswept Studios\\The Dead Linger Alpha\\content\\resources.cfg");
+    modManager = new ModManager("C:\\Sandswept Studios\\The Dead Linger Alpha\\");
+
+    ErrorCode error = modManager->install("Z:\\Source\\Github\\TDL-Mod-Loader\\ModLoaderFormatExample.zip");
     if(error != Error::NO_ERROR)
     {
         QString errStr;
         QTextStream out(&errStr);
-        out << "Failed to init config: " << error;
+        out << "Failed to install mod: " << error;
+        ui->labelTDLVersion->setText(errStr);
+        return;
+    }
+
+    error = modManager->load("C:\\Users\\Jason\\AppData\\Roaming\\Sandswept Studios\\The Dead Linger\\tdlversion.txt");
+    if(error != Error::NO_ERROR)
+    {
+        QString errStr;
+        QTextStream out(&errStr);
+        out << "Failed to load mods: " << error;
+        ui->labelTDLVersion->setText(errStr);
+        return;
+    }
+
+    const QVector<const ModManager::Mod* const>* modList = modManager->getMods();
+    if(modList->size() != 1)
+    {
+        QString errStr;
+        QTextStream out(&errStr);
+        out << "Bad mod list size: " << modList->size();
+        ui->labelTDLVersion->setText(errStr);
+        return;
+    }
+
+    error = modManager->enableMod(0);
+    if(error != Error::NO_ERROR)
+    {
+        QString errStr;
+        QTextStream out(&errStr);
+        out << "Failed to enable mod: " << error;
+        ui->labelTDLVersion->setText(errStr);
+        return;
+    }
+
+    const QVector<const ModManager::Mod* const>* enabledModOrder = modManager->getEnabledModOrder();
+    if(enabledModOrder->size() != 1)
+    {
+        QString errStr;
+        QTextStream out(&errStr);
+        out << "Bad enabled mod order size: " << enabledModOrder->size();
+        ui->labelTDLVersion->setText(errStr);
+        return;
+    }
+
+    error = modManager->save();
+    if(error != Error::NO_ERROR)
+    {
+        QString errStr;
+        QTextStream out(&errStr);
+        out << "Failed to save: " << error;
         ui->labelTDLVersion->setText(errStr);
         return;
     }
 
     QString outStr;
     QTextStream out(&outStr);
-    out << "TDL Version: " << config.getVersion();
+    out << "Succuss";
     ui->labelTDLVersion->setText(outStr);
-
-    config.addPlugin(0, "testMod", "testPlugin");
-    config.addResource(0, "testMod", "testResource");
-
-    config.save();
 }
 
 MainWindow::~MainWindow()
