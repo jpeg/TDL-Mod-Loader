@@ -26,6 +26,9 @@
  *     figures out which are enabled from game config
  *     files. Returns an error code value.
  *
+ *   int getVersion()
+ *     Returns the game version from game config.
+ *
  *   const QVector<const Mod* const>* getMods()
  *     Returns a pointer to the list of mods.
  *
@@ -80,6 +83,7 @@ private:
 public:
     struct Mod
     {
+        Mod() {} //to eliminate a warning
         bool enabled;
         QString name;
         QString prettyName;
@@ -105,6 +109,7 @@ public:
     ErrorCode install(const QString& modArchivePath);
     ErrorCode remove(int mod);
     ErrorCode load(const QString& versionFileName);
+    int getVersion();
     const QVector<const Mod* const>* getMods();
     const QVector<const Mod* const>* getEnabledModOrder();
     ErrorCode enableMod(int mod);

@@ -23,13 +23,17 @@ ConfigModifier::~ConfigModifier()
 ErrorCode ConfigModifier::init(const QString &versionFilename, const QString &pluginsFilename, const QString &resourcesFilename, QVector<QString>& activeMods)
 {
     // Read version
+    ErrorCode versionError = Error::NO_ERROR;
     QFile versionFile(versionFilename);
     if(!versionFile.open(QIODevice::ReadOnly | QIODevice::Text))
-        return Error::FAILED_OPEN_VERSION_FILE;
-    QTextStream versionIn(&versionFile);
-    m_version = -1;
-    if(!versionFile.atEnd())
-        versionIn >> m_version;
+        versionError = Error::FAILED_OPEN_VERSION_FILE;
+    else
+    {
+        QTextStream versionIn(&versionFile);
+        m_version = -1;
+        if(!versionFile.atEnd())
+            versionIn >> m_version;
+    }
     versionFile.close();
 
     // Load config files
@@ -65,7 +69,7 @@ ErrorCode ConfigModifier::init(const QString &versionFilename, const QString &pl
             // Load into mod list since enabled
             if(line.contains("FileSystem=./" + MODS_DIR, Qt::CaseInsensitive))
             {
-                line.truncate(QString("FileSystem=./").length());
+                line.remove(0, QString("FileSystem=./" + MODS_DIR).length());
                 int index = 0;
                 while(line[index] != QChar('/'))
                     index++;
@@ -78,7 +82,7 @@ ErrorCode ConfigModifier::init(const QString &versionFilename, const QString &pl
     vanillaPluginsFile.close();
     vanillaResourcesFile.close();
 
-    return Error::NO_ERROR;
+    return versionError;
 }
 
 int ConfigModifier::getVersion()

@@ -8,11 +8,10 @@
 
 ModManager::ModManager(const QString &gameDirectory)
 {
-#ifdef WIN32
-    MODS_DIR = "mods\\";
-#else
-    MODS_DIR = ConfigModifier::MODS_DIR;
-#endif
+    m_gameConfig = new ConfigModifier;
+
+    MODS_DIR = m_gameConfig->MODS_DIR;
+
     DISALLOWED_PLUGIN_FILENAMES.push_back("cg");
     DISALLOWED_PLUGIN_FILENAMES.push_back("libmysql");
     DISALLOWED_PLUGIN_FILENAMES.push_back("OgreMain");
@@ -36,11 +35,7 @@ ModManager::ModManager(const QString &gameDirectory)
 
     // Check if gameDir valid, may also (hopefully) fail if TDL is currently running?
     if(m_gameDir[m_gameDir.size()-1] != QChar('/') && m_gameDir[m_gameDir.size()-1] != QChar('\\'))
-#ifdef WIN32
-        m_gameDir.append("\\");
-#else
         m_gameDir.append("/");
-#endif
     QFile gameFile(m_gameDir + "TDL.exe");
     if(!gameFile.open(QIODevice::ReadOnly))
         m_gameDirValid = false;
@@ -52,8 +47,6 @@ ModManager::ModManager(const QString &gameDirectory)
         if(!gameDir.mkdir(MODS_DIR))
             m_gameDirValid = false;
     }
-
-    m_gameConfig = new ConfigModifier;
 
     m_loaded = false;
 }
@@ -67,6 +60,8 @@ ModManager::~ModManager()
 
 ErrorCode ModManager::install(const QString& modArchivePath)
 {
+    qDebug() << "Installing mod" << modArchivePath;
+
     if(m_gameDirValid)
     {
         //TODO quazip to move files to mods/ dir
@@ -242,12 +237,9 @@ ErrorCode ModManager::load(const QString &versionFilename)
 
     // Figure out which mods are enabled
     QVector<QString> activeMods;
-#ifdef WIN32
-    QString rfn = "content\\resources.cfg";
-#else
-    QString rfn = "content/resources.cfg";
-#endif
-    m_gameConfig->init(versionFilename, m_gameDir + "Plugins.cfg", m_gameDir + rfn, activeMods);
+    ErrorCode initErr = m_gameConfig->init(versionFilename, m_gameDir + "Plugins.cfg", m_gameDir + "content/resources.cfg", activeMods);
+    if(initErr != Error::NO_ERROR)
+        return initErr;
     for(int i=0; i<activeMods.size(); i++)
     {
         bool activeModFound = false;
@@ -275,6 +267,11 @@ ErrorCode ModManager::load(const QString &versionFilename)
     m_loaded = true;
 
     return Error::NO_ERROR;
+}
+
+int ModManager::getVersion()
+{
+    return m_gameConfig->getVersion();
 }
 
 const QVector<const ModManager::Mod* const>* ModManager::getMods()
