@@ -274,14 +274,14 @@ int ModManager::getVersion()
     return m_gameConfig->getVersion();
 }
 
-const QVector<const ModManager::Mod* const>* ModManager::getMods()
+QVector<ModManager::Mod*>* ModManager::getMods()
 {
-    return (const QVector<const ModManager::Mod* const>*)&m_mods;
+    return &m_mods;
 }
 
-const QVector<const ModManager::Mod* const>* ModManager::getEnabledModOrder()
+QVector<ModManager::Mod *> *ModManager::getEnabledModOrder()
 {
-    return (const QVector<const ModManager::Mod* const>*)&m_enabledModOrder;
+    return &m_enabledModOrder;
 }
 
 ErrorCode ModManager::enableMod(int mod)

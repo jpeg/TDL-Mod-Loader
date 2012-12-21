@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Jackal Mod Loader</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -90,6 +90,31 @@
      </layout>
     </item>
     <item>
+     <layout class="QHBoxLayout" name="layoutModControls">
+      <item>
+       <widget class="QPushButton" name="buttonEnableMod">
+        <property name="text">
+         <string>Enable</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="buttonDisableMod">
+        <property name="text">
+         <string>Disable</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="buttonRemoveMod">
+        <property name="text">
+         <string>Uninstall</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
      <widget class="QTreeView" name="treeViewMods"/>
     </item>
    </layout>
@@ -107,6 +132,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionSettings"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -127,6 +153,11 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>

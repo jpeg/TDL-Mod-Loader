@@ -1,43 +1,48 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QTextStream>
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    //TODO load settings
+    // Load settings
+    settings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Utudio", "Jackal Mod Loader");
+    QString gamePath = settings->value("game/path", "C:/Sandswept Studios/The Dead Linger Alpha/").toString();
+    int gameVersion = settings->value("game/version", -1).toInt();
 
     errorMessageBox = new QMessageBox;
     errorMessageBox->setIcon(QMessageBox::Critical);
 
-    modManager = new ModManager("C:/Sandswept Studios/The Dead Linger Alpha/");
+    // Initialize Mod Manager
+    modManager = new ModManager(gamePath);
     showError(modManager->load("C:/Users/Jason/AppData/Roaming/Sandswept Studios/The Dead Linger/tdlversion.txt"));
+    if(gameVersion != modManager->getVersion())
+        settings->setValue("game/version", modManager->getVersion()); //may need to do something special for updates?
 
-    // Setup tree model for mod list
+    // Set up tree view model for mod list
     QStandardItem* root = modListTreeModel.invisibleRootItem();
-    QStandardItem* enabledModModel = new QStandardItem(/*TODO icon,*/ "Enabled Mods");
-    QStandardItem* allModModel = new QStandardItem(/*TODO icon,*/ "All Mods");
-    enabledModModel->setFlags(enabledModModel->flags() & ~Qt::ItemIsEditable);
-    allModModel->setFlags(allModModel->flags() & ~Qt::ItemIsEditable);
-    root->appendRow(enabledModModel);
-    root->appendRow(allModModel);
+    enabledModsItem = new QStandardItem(/*TODO icon,*/ "Enabled Mods");
+    allModsItem = new QStandardItem(/*TODO icon,*/ "All Mods");
+    enabledModsItem->setFlags(enabledModsItem->flags() & ~Qt::ItemIsEditable);
+    allModsItem->setFlags(allModsItem->flags() & ~Qt::ItemIsEditable);
+    root->appendRow(enabledModsItem);
+    root->appendRow(allModsItem);
     for(int i=0; i<modManager->getEnabledModOrder()->size(); i++)
     {
-        QStandardItem* enabledModItem = new QStandardItem(/*TODO icon,*/ modManager->getEnabledModOrder()->at(i)->prettyName);
-        enabledModItem->setFlags(enabledModItem->flags() & ~Qt::ItemIsEditable);
-        enabledModModel->appendRow(enabledModItem);
+        QStandardItem* modItem = new QStandardItem(/*TODO icon,*/ modManager->getEnabledModOrder()->at(i)->prettyName);
+        modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
+        enabledModsItem->appendRow(modItem);
     }
     for(int i=0; i<modManager->getMods()->size(); i++)
     {
         QStandardItem* modItem = new QStandardItem(/*TODO icon,*/ modManager->getMods()->at(i)->prettyName);
         modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
-        allModModel->appendRow(modItem);
+        allModsItem->appendRow(modItem);
     }
 
     ui->setupUi(this);
 
+    // Set some initial GUI display
     QString version;
     QTextStream versionStream(&version);
     versionStream << "Installed TDL Version: " << modManager->getVersion();
@@ -75,8 +80,52 @@ void MainWindow::on_actionAbout_triggered()
     //TODO display about window
 }
 
+void MainWindow::on_actionSettings_triggered()
+{
+    //TODO display settings window
+}
+
 void MainWindow::on_buttonInstallMod_clicked()
 {
     QString modArchive = QFileDialog::getOpenFileName(this, "Select mod to install...", "./", "ZIP Files (*.zip)");
     showError(modManager->install(modArchive));
+}
+
+void MainWindow::on_buttonEnableMod_clicked()
+{
+    //TODO enable mod
+}
+
+void MainWindow::on_buttonDisableMod_clicked()
+{
+    //TODO disable mod
+}
+
+void MainWindow::on_buttonRemoveMod_clicked()
+{
+    //TODO remove mod
+}
+
+void MainWindow::on_treeViewMods_clicked(const QModelIndex &index)
+{
+    ModManager::Mod* mod;
+    if(index.parent() == enabledModsItem->index())
+        mod = modManager->getEnabledModOrder()->at(index.row());
+    else if(index.parent() == allModsItem->index())
+        mod = modManager->getMods()->at(index.row());
+    else
+        return; //selected catagory label rather than mod
+
+    ui->labelModName->setText(mod->prettyName);
+    ui->labelModAuthor->setText(modManager->getEnabledModOrder()->at(index.row())->author);
+    ui->labelModVersion->setText(modManager->getEnabledModOrder()->at(index.row())->version);
+    QString version;
+    QTextStream versionStream(&version);
+    versionStream << modManager->getEnabledModOrder()->at(index.row())->gameVersion;
+    ui->labelModGameVersion->setText(version);
+}
+
+void MainWindow::on_treeViewMods_activated(const QModelIndex &index)
+{
+    on_treeViewMods_clicked(index);
 }
