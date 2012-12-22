@@ -30,6 +30,20 @@ ModManager::ModManager(const QString &gameDirectory)
     DISALLOWED_PLUGIN_FILENAMES.push_back("RenderSystem_Direct3D9");
     DISALLOWED_PLUGIN_FILENAMES.push_back("RenderSystem_GL");
 
+    checkGameDirectory(gameDirectory);
+
+    m_loaded = false;
+}
+
+ModManager::~ModManager()
+{
+    delete m_gameConfig;
+    for(int i=0; i<m_mods.size(); i++)
+        delete m_mods[i];
+}
+
+void ModManager::checkGameDirectory(QString gameDirectory)
+{
     m_gameDir = gameDirectory;
     m_gameDirValid = true;
 
@@ -47,15 +61,6 @@ ModManager::ModManager(const QString &gameDirectory)
         if(!gameDir.mkdir(MODS_DIR))
             m_gameDirValid = false;
     }
-
-    m_loaded = false;
-}
-
-ModManager::~ModManager()
-{
-    delete m_gameConfig;
-    for(int i=0; i<m_mods.size(); i++)
-        delete m_mods[i];
 }
 
 ErrorCode ModManager::install(const QString& modArchivePath)
@@ -267,6 +272,11 @@ ErrorCode ModManager::load(const QString &versionFilename)
     m_loaded = true;
 
     return Error::NO_ERROR;
+}
+
+bool ModManager::getGameDirectoryValid()
+{
+    return m_gameDirValid;
 }
 
 int ModManager::getVersion()

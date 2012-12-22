@@ -6,7 +6,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     // Load settings
-    settings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Utudio", "Jackal Mod Loader");
+    QCoreApplication::setOrganizationName("Utudio");
+    QCoreApplication::setApplicationName("Jackal Mod Loader");
+    QCoreApplication::setApplicationVersion("0.1.0");
+    settings = new QSettings("settings.ini", QSettings::IniFormat);
     QString gamePath = settings->value("game/path", "C:/Sandswept Studios/The Dead Linger Alpha/").toString();
     int gameVersion = settings->value("game/version", -1).toInt();
 
@@ -15,10 +18,27 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Initialize Mod Manager
     modManager = new ModManager(gamePath);
+    while(!modManager->getGameDirectoryValid())
+    {
+        // Check gamepath and have user select if invalid
+        gamePath = QFileDialog::getOpenFileName(this, "Select TDL executable...", "./", "TDL Executable (TDL.exe)");
+        if(gamePath.isEmpty() || gamePath.isNull())
+            exit(0);
+        for(int i=gamePath.size()-1; i>=0; i--)
+        {
+            if(gamePath[i] == QChar('/'))
+            {
+                gamePath.truncate(i);
+                break;
+            }
+        }qDebug()<<gamePath;
+        modManager->checkGameDirectory(gamePath);
+    }
+    settings->setValue("game/path", gamePath);
     showError(modManager->load("C:/Users/Jason/AppData/Roaming/Sandswept Studios/The Dead Linger/tdlversion.txt"));
     if(gameVersion != modManager->getVersion())
         settings->setValue("game/version", modManager->getVersion()); //may need to do something special for updates?
-
+modManager->save();//TODO fix and remove
     // Set up tree view model for mod list
     QStandardItem* root = modListTreeModel.invisibleRootItem();
     enabledModsItem = new QStandardItem(/*TODO icon,*/ "Enabled Mods");
@@ -119,7 +139,8 @@ void MainWindow::on_actionOnline_Help_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    //TODO display about window
+    About* w = new About(this);
+    w->show();
 }
 
 void MainWindow::on_buttonInstallMod_clicked()
@@ -168,7 +189,23 @@ void MainWindow::on_buttonModOrderUp_clicked()
 
     if(modIndex >= 0)
     {
-        //TODO
+        int enabledModIndex = -1;
+        for(int i=0; i<modManager->getEnabledModOrder()->size(); i++)
+        {
+            if(modManager->getMods()->at(modIndex) == modManager->getEnabledModOrder()->at(i))
+            {
+                enabledModIndex = i;
+                break;
+            }
+        }
+        if(enabledModIndex >= 1 && enabledModIndex < modManager->getEnabledModOrder()->size())
+        {
+            modManager->modOrderUp(enabledModIndex);
+            modManager->save();
+            QString temp = enabledModsItem->child(enabledModIndex-1)->text();
+            enabledModsItem->child(enabledModIndex-1)->setText(enabledModsItem->child(enabledModIndex)->text());
+            enabledModsItem->child(enabledModIndex)->setText(temp);
+        }
     }
 }
 
@@ -178,7 +215,23 @@ void MainWindow::on_buttonModOrderDown_clicked()
 
     if(modIndex >= 0)
     {
-        //TODO
+        int enabledModIndex = -1;
+        for(int i=0; i<modManager->getEnabledModOrder()->size(); i++)
+        {
+            if(modManager->getMods()->at(modIndex) == modManager->getEnabledModOrder()->at(i))
+            {
+                enabledModIndex = i;
+                break;
+            }
+        }
+        if(enabledModIndex >= 0 && enabledModIndex < modManager->getEnabledModOrder()->size() - 1)
+        {
+            modManager->modOrderDown(enabledModIndex);
+            modManager->save();
+            QString temp = enabledModsItem->child(enabledModIndex+1)->text();
+            enabledModsItem->child(enabledModIndex+1)->setText(enabledModsItem->child(enabledModIndex)->text());
+            enabledModsItem->child(enabledModIndex)->setText(temp);
+        }
     }
 }
 

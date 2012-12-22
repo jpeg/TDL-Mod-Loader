@@ -105,9 +105,11 @@ private:
     QVector<Mod*> m_enabledModOrder;
 
 public:
+    void checkGameDirectory(QString gameDirectory);
     ErrorCode install(const QString& modArchivePath);
     ErrorCode remove(int mod);
     ErrorCode load(const QString& versionFileName);
+    bool getGameDirectoryValid();
     int getVersion();
     QVector<Mod*>* getMods();
     QVector<Mod*>* getEnabledModOrder();

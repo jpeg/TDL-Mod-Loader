@@ -10,7 +10,9 @@
 #include <QTextStream>
 #include <QStandardItemModel>
 
-#include <modmanager.h>
+#include "about.h"
+
+#include "modmanager.h"
 
 namespace Ui {
 class MainWindow;
