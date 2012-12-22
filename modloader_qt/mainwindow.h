@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QSettings>
+#include <QDesktopServices>
+#include <QUrl>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QTextStream>
@@ -24,6 +26,7 @@ public:
 
 private:
     void showError(ErrorCode error);
+    int getSelectedModIndex();
     
 private slots:
     void on_actionExit_triggered();
@@ -36,13 +39,17 @@ private slots:
 
     void on_buttonEnableMod_clicked();
 
-    void on_buttonDisableMod_clicked();
+    void on_buttonModOrderUp_clicked();
+
+    void on_buttonModOrderDown_clicked();
 
     void on_buttonRemoveMod_clicked();
 
     void on_treeViewMods_clicked(const QModelIndex &index);
 
     void on_treeViewMods_activated(const QModelIndex &index);
+
+    void on_actionOnline_Help_triggered();
 
 private:
     Ui::MainWindow *ui;

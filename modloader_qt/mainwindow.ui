@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>338</width>
+    <height>339</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Jackal Mod Loader</string>
@@ -23,14 +29,24 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="buttonInstallMod">
-      <property name="text">
-       <string>Install New Mod</string>
-      </property>
-     </widget>
+     <layout class="QHBoxLayout" name="layoutInstallMod">
+      <item>
+       <widget class="QPushButton" name="buttonInstallMod">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Install New Mod</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
-     <layout class="QGridLayout" name="gridLayout_2">
+     <layout class="QGridLayout" name="layoutModInfo">
       <item row="2" column="0">
        <widget class="QLabel" name="labelModVersionLabel">
         <property name="text">
@@ -54,6 +70,12 @@
       </item>
       <item row="0" column="0">
        <widget class="QLabel" name="labelModNameLabel">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>Name:</string>
         </property>
@@ -62,28 +84,28 @@
       <item row="0" column="1">
        <widget class="QLabel" name="labelModName">
         <property name="text">
-         <string>TextLabel</string>
+         <string/>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QLabel" name="labelModAuthor">
         <property name="text">
-         <string>TextLabel</string>
+         <string/>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
        <widget class="QLabel" name="labelModVersion">
         <property name="text">
-         <string>TextLabel</string>
+         <string/>
         </property>
        </widget>
       </item>
       <item row="3" column="1">
        <widget class="QLabel" name="labelModGameVersion">
         <property name="text">
-         <string>TextLabel</string>
+         <string/>
         </property>
        </widget>
       </item>
@@ -99,9 +121,16 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="buttonDisableMod">
+       <widget class="QPushButton" name="buttonModOrderUp">
         <property name="text">
-         <string>Disable</string>
+         <string>Move Up</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="buttonModOrderDown">
+        <property name="text">
+         <string>Move Down</string>
         </property>
        </widget>
       </item>
@@ -124,7 +153,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
+     <width>338</width>
      <height>21</height>
     </rect>
    </property>
@@ -139,6 +168,7 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionOnline_Help"/>
     <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
@@ -158,6 +188,14 @@
   <action name="actionSettings">
    <property name="text">
     <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionOnline_Help">
+   <property name="text">
+    <string>Online Help</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
    </property>
   </action>
  </widget>

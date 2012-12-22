@@ -300,6 +300,7 @@ ErrorCode ModManager::enableMod(int mod)
                 for(int i=0; i<m_mods[mod]->resources.size(); i++)
                     m_gameConfig->addResource(m_enabledModOrder.size(), m_mods[mod]->name, m_mods[mod]->resources[i]);
                 m_enabledModOrder.push_back(m_mods[mod]);
+                m_mods[mod]->enabled = true;
 
                 if(m_mods[mod]->refreshScriptCache)
                 {
@@ -330,6 +331,7 @@ ErrorCode ModManager::disableMod(int mod)
                 {
                     m_gameConfig->remove(i);
                     m_enabledModOrder.remove(i);
+                    m_mods[mod]->enabled = false;
                     //TODO remove plugin files
                 }
             }

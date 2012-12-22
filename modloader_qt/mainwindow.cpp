@@ -48,8 +48,16 @@ MainWindow::MainWindow(QWidget *parent) :
     versionStream << "Installed TDL Version: " << modManager->getVersion();
     ui->labelTDLVersion->setText(version);
 
+    ui->buttonEnableMod->setEnabled(false);
+    ui->buttonModOrderUp->setEnabled(false);
+    ui->buttonModOrderDown->setEnabled(false);
+    ui->buttonRemoveMod->setEnabled(false);
+
     ui->treeViewMods->setHeaderHidden(true);
     ui->treeViewMods->setModel(&modListTreeModel);
+
+    //TODO actually have settings
+    ui->actionSettings->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
@@ -70,19 +78,48 @@ void MainWindow::showError(ErrorCode error)
     }
 }
 
-void MainWindow::on_actionExit_triggered()
+int MainWindow::getSelectedModIndex()
 {
-    this->close();
-}
+    int modIndex = -1;
 
-void MainWindow::on_actionAbout_triggered()
-{
-    //TODO display about window
+    QModelIndex index;
+    if(ui->treeViewMods->selectionModel()->selectedIndexes().size() > 0)
+        index = ui->treeViewMods->selectionModel()->selectedIndexes().at(0);
+    else
+        return modIndex;
+
+    if(index.parent() == enabledModsItem->index())
+    {
+        for(int i=0; i<modManager->getMods()->size(); i++)
+        {
+            if(modManager->getMods()->at(i) == modManager->getEnabledModOrder()->at(index.row()))
+                modIndex = i;
+        }
+    }
+    else if(index.parent() == allModsItem->index())
+        modIndex = index.row();
+
+    return modIndex; //selected catagory label rather than mod
 }
 
 void MainWindow::on_actionSettings_triggered()
 {
     //TODO display settings window
+}
+
+void MainWindow::on_actionExit_triggered()
+{
+    this->close();
+}
+
+void MainWindow::on_actionOnline_Help_triggered()
+{
+    QDesktopServices::openUrl(QUrl("https://github.com/jpeg/TDL-Mod-Loader/wiki"));
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    //TODO display about window
 }
 
 void MainWindow::on_buttonInstallMod_clicked()
@@ -93,36 +130,128 @@ void MainWindow::on_buttonInstallMod_clicked()
 
 void MainWindow::on_buttonEnableMod_clicked()
 {
-    //TODO enable mod
+    int modIndex = getSelectedModIndex();
+
+    if(modIndex >= 0)
+    {
+        if(modManager->getMods()->at(modIndex)->enabled)
+        {
+            // Disable mod
+            for(int i=0; i<modManager->getEnabledModOrder()->size(); i++)
+            {
+                if(modManager->getMods()->at(modIndex) == modManager->getEnabledModOrder()->at(i))
+                {
+                    enabledModsItem->removeRow(i);
+                    break;
+                }
+            }
+            ui->buttonEnableMod->setText("Enable");
+            showError(modManager->disableMod(modIndex));
+            showError(modManager->save());
+        }
+        else
+        {
+            // Enable mod
+            QStandardItem* modItem = new QStandardItem(/*TODO icon,*/ modManager->getMods()->at(modIndex)->prettyName);
+            modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
+            enabledModsItem->appendRow(modItem);
+            ui->buttonEnableMod->setText("Disable");
+            showError(modManager->enableMod(modIndex));
+            showError(modManager->save());
+        }
+    }
 }
 
-void MainWindow::on_buttonDisableMod_clicked()
+void MainWindow::on_buttonModOrderUp_clicked()
 {
-    //TODO disable mod
+    int modIndex = getSelectedModIndex();
+
+    if(modIndex >= 0)
+    {
+        //TODO
+    }
+}
+
+void MainWindow::on_buttonModOrderDown_clicked()
+{
+    int modIndex = getSelectedModIndex();
+
+    if(modIndex >= 0)
+    {
+        //TODO
+    }
 }
 
 void MainWindow::on_buttonRemoveMod_clicked()
 {
-    //TODO remove mod
+    int modIndex = getSelectedModIndex();
+
+    if(modIndex >= 0)
+    {
+        if(modManager->getMods()->at(modIndex)->enabled)
+        {
+            // Disable mod
+            for(int i=0; i<modManager->getEnabledModOrder()->size(); i++)
+            {
+                if(modManager->getMods()->at(modIndex) == modManager->getEnabledModOrder()->at(i))
+                {
+                    enabledModsItem->removeRow(i);
+                    break;
+                }
+            }
+            showError(modManager->disableMod(modIndex));
+            showError(modManager->save());
+        }
+        allModsItem->removeRow(modIndex);
+        modManager->remove(modIndex);
+    }
 }
 
 void MainWindow::on_treeViewMods_clicked(const QModelIndex &index)
 {
     ModManager::Mod* mod;
     if(index.parent() == enabledModsItem->index())
+    {
         mod = modManager->getEnabledModOrder()->at(index.row());
+        if(index.row() > 0)
+            ui->buttonModOrderUp->setEnabled(true);
+        else
+            ui->buttonModOrderUp->setEnabled(false);
+        if(index.row() < enabledModsItem->rowCount()-1)
+            ui->buttonModOrderDown->setEnabled(true);
+        else
+            ui->buttonModOrderDown->setEnabled(false);
+    }
     else if(index.parent() == allModsItem->index())
+    {
         mod = modManager->getMods()->at(index.row());
+        ui->buttonModOrderUp->setEnabled(false);
+        ui->buttonModOrderDown->setEnabled(false);
+    }
     else
-        return; //selected catagory label rather than mod
+    {
+        // Selected catagory label rather than mod
+        ui->buttonEnableMod->setEnabled(false);
+        ui->buttonModOrderUp->setEnabled(false);
+        ui->buttonModOrderDown->setEnabled(false);
+        ui->buttonRemoveMod->setEnabled(false);
+        return;
+    }
 
     ui->labelModName->setText(mod->prettyName);
-    ui->labelModAuthor->setText(modManager->getEnabledModOrder()->at(index.row())->author);
-    ui->labelModVersion->setText(modManager->getEnabledModOrder()->at(index.row())->version);
+    ui->labelModAuthor->setText(mod->author);
+    ui->labelModVersion->setText(mod->version);
     QString version;
     QTextStream versionStream(&version);
-    versionStream << modManager->getEnabledModOrder()->at(index.row())->gameVersion;
+    versionStream << mod->gameVersion;
     ui->labelModGameVersion->setText(version);
+
+    ui->buttonEnableMod->setEnabled(true);
+    if(mod->enabled)
+        ui->buttonEnableMod->setText("Disable");
+    else
+        ui->buttonEnableMod->setText("Enable");
+    ui->buttonRemoveMod->setEnabled(true);
 }
 
 void MainWindow::on_treeViewMods_activated(const QModelIndex &index)
