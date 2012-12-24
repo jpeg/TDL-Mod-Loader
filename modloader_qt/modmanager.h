@@ -6,11 +6,11 @@
  *
  *
  * Interface:
- *   ModManager(const QString& gameDirectory)
- *     Checks if given base game directory is valid by
- *     looking to see if the game executable exists there.
- *     Creates the mods directory if it doesn't already
- *     exist.
+ *   ModManager(const QString& gameDirectory, const QString& dataDirectory)
+ *     Checks if given base game and data directories are
+ *     valid by looking to see if the game executable
+ *     exists is in the game directory. Creates the mods
+ *     directory if it doesn't already exist.
  *
  *   ErrorCode install(const QString& modArchivePath)
  *     Copies all files from the given mod archive into
@@ -65,19 +65,26 @@
 #include <QVector>
 #include <QDir>
 #include <QFile>
+#include <QMessageBox>
 #include <QDebug>
 
-#include <configmodifier.h>
-#include <errorcodes.h>
+#include "configmodifier.h"
+#include "errorcodes.h"
 
 class ModManager
 {
 public:
-    ModManager(const QString& gameDirectory);
+    ModManager(const QString& gameDirectory, const QString& dataDirectory);
     virtual ~ModManager();
 
 private:
+    QString DATA_SUB_DIR;
+    QString VERSION_FILE;
+    QString PLUGINS_FILE;
+    QString RESOURCES_FILE;
     QString MODS_DIR;
+    QString WORLDS_DIR;
+    QString INVENTORY_DIR;
     QVector<QString> DISALLOWED_PLUGIN_FILENAMES;
 
 public:
@@ -92,11 +99,15 @@ public:
         QVector<QString> plugins;
         QVector<QString> resources;
         bool refreshScriptCache;
+        bool refreshWorld;
+        bool refreshInventory;
     };
 
 private:
     QString m_gameDir;
     bool m_gameDirValid;
+    QString m_dataDir;
+    bool m_dataDirValid;
     bool m_loaded;
 
     ConfigModifier* m_gameConfig;
@@ -105,10 +116,11 @@ private:
     QVector<Mod*> m_enabledModOrder;
 
 public:
-    void checkGameDirectory(QString gameDirectory);
+    void checkGameDirectory(const QString& gameDirectory);
+    void checkDataDirectory(const QString& dataDirectory);
     ErrorCode install(const QString& modArchivePath);
     ErrorCode remove(int mod);
-    ErrorCode load(const QString& versionFileName);
+    ErrorCode load();
     bool getGameDirectoryValid();
     int getVersion();
     QVector<Mod*>* getMods();
@@ -118,8 +130,11 @@ public:
     ErrorCode modOrderUp(int mod);
     ErrorCode modOrderDown(int mod);
     ErrorCode save();
+    ErrorCode refreshWorld();
+    ErrorCode refreshInventory();
 
 private:
+    int installPlugin(int modIndex, QString modName, QString plugin);
     bool deleteDir(const QString& path);
 };
 

@@ -51,7 +51,7 @@
 #include <QFile>
 #include <QTextStream>
 
-#include <errorcodes.h>
+#include "errorcodes.h"
 
 class ConfigModifier
 {    

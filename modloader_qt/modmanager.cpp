@@ -6,11 +6,20 @@
 
 #include "modmanager.h"
 
-ModManager::ModManager(const QString &gameDirectory)
+ModManager::ModManager(const QString& gameDirectory, const QString& dataDirectory)
 {
     m_gameConfig = new ConfigModifier;
 
+#ifdef WIN32
+    DATA_SUB_DIR = "Roaming/Sandswept Studios/The Dead Linger/";
+#endif
+
+    VERSION_FILE = DATA_SUB_DIR + "tdlversion.txt";
+    PLUGINS_FILE = "Plugins.cfg";
+    RESOURCES_FILE = "content/resources.cfg";
     MODS_DIR = m_gameConfig->MODS_DIR;
+    WORLDS_DIR = DATA_SUB_DIR + "SavedWorlds";
+    INVENTORY_DIR = DATA_SUB_DIR + "inventory";
 
     DISALLOWED_PLUGIN_FILENAMES.push_back("cg");
     DISALLOWED_PLUGIN_FILENAMES.push_back("libmysql");
@@ -31,6 +40,7 @@ ModManager::ModManager(const QString &gameDirectory)
     DISALLOWED_PLUGIN_FILENAMES.push_back("RenderSystem_GL");
 
     checkGameDirectory(gameDirectory);
+    checkDataDirectory(dataDirectory);
 
     m_loaded = false;
 }
@@ -42,7 +52,7 @@ ModManager::~ModManager()
         delete m_mods[i];
 }
 
-void ModManager::checkGameDirectory(QString gameDirectory)
+void ModManager::checkGameDirectory(const QString& gameDirectory)
 {
     m_gameDir = gameDirectory;
     m_gameDirValid = true;
@@ -63,6 +73,18 @@ void ModManager::checkGameDirectory(QString gameDirectory)
     }
 }
 
+void ModManager::checkDataDirectory(const QString& dataDirectory)
+{
+    m_dataDir = dataDirectory;
+    m_dataDirValid = true;
+
+    QDir dataDir("");
+    if(!dataDir.cd(m_dataDir))
+    {
+        m_dataDirValid = false;
+    }
+}
+
 ErrorCode ModManager::install(const QString& modArchivePath)
 {
     qDebug() << "Installing mod" << modArchivePath;
@@ -74,7 +96,7 @@ ErrorCode ModManager::install(const QString& modArchivePath)
         // Load the newly installed mod if mods have been loaded
         if(m_loaded)
         {
-            //TODO DON'T LOAD IF DISALLOWED PLUGIN FILENAME
+            //TODO
         }
     }
     else
@@ -89,7 +111,10 @@ ErrorCode ModManager::remove(int mod)
         return Error::INVALID_MOD_ID;
 
     if(m_enabledModOrder.contains(m_mods[mod]))
-        return Error::CANT_REMOVE_ENABLED_MOD;
+    {
+        disableMod(mod);
+        save();
+    }
 
     // Delete mod directory
     QDir modsDir("");
@@ -108,7 +133,7 @@ ErrorCode ModManager::remove(int mod)
     return Error::NO_ERROR;
 }
 
-ErrorCode ModManager::load(const QString &versionFilename)
+ErrorCode ModManager::load()
 {
     if(m_gameDirValid)
     {
@@ -221,6 +246,16 @@ ErrorCode ModManager::load(const QString &versionFilename)
                                 mod->refreshScriptCache = true;
                                 qDebug() << "Mod Refresh Script Cache: true";
                             }
+                            else if(line.contains("refreshWorld=true", Qt::CaseInsensitive))
+                            {
+                                mod->refreshWorld = true;
+                                qDebug() << "Mod Refresh World: true";
+                            }
+                            else if(line.contains("refreshInventory=true", Qt::CaseInsensitive))
+                            {
+                                mod->refreshInventory = true;
+                                qDebug() << "Mod Refresh Inventory: true";
+                            }
                         }
                     }
                 }
@@ -242,7 +277,7 @@ ErrorCode ModManager::load(const QString &versionFilename)
 
     // Figure out which mods are enabled
     QVector<QString> activeMods;
-    ErrorCode initErr = m_gameConfig->init(versionFilename, m_gameDir + "Plugins.cfg", m_gameDir + "content/resources.cfg", activeMods);
+    ErrorCode initErr = m_gameConfig->init(m_dataDir + VERSION_FILE, m_gameDir + PLUGINS_FILE, m_gameDir + RESOURCES_FILE, activeMods);
     if(initErr != Error::NO_ERROR)
         return initErr;
     for(int i=0; i<activeMods.size(); i++)
@@ -256,11 +291,9 @@ ErrorCode ModManager::load(const QString &versionFilename)
                 if(!m_enabledModOrder.contains(m_mods[j]))
                     m_enabledModOrder.push_back(m_mods[j]);
                 for(int k=0; k<m_mods[j]->plugins.size(); k++)
-                {
-                    // Load only if name not disallowed
-                    if(!DISALLOWED_PLUGIN_FILENAMES.contains(m_mods[j]->plugins[k]))
-                        m_gameConfig->addPlugin(i, m_mods[j]->name, m_mods[j]->plugins[k]);
-                }
+                    installPlugin(i, m_mods[j]->name, m_mods[j]->plugins[k]);
+                for(int k=0; k<m_mods[j]->resources.size(); k++)
+                    m_gameConfig->addResource(i, m_mods[j]->name, m_mods[j]->resources[k]);
                 activeModFound = true;
                 break;
             }
@@ -303,10 +336,7 @@ ErrorCode ModManager::enableMod(int mod)
             if(!m_enabledModOrder.contains(m_mods[mod]))
             {
                 for(int i=0; i<m_mods[mod]->plugins.size(); i++)
-                {
-                    //TODO copy plugin file
-                    m_gameConfig->addPlugin(m_enabledModOrder.size(), m_mods[mod]->name, m_mods[mod]->plugins[i]);
-                }
+                    installPlugin(m_enabledModOrder.size(), m_mods[mod]->name, m_mods[mod]->plugins[i]);
                 for(int i=0; i<m_mods[mod]->resources.size(); i++)
                     m_gameConfig->addResource(m_enabledModOrder.size(), m_mods[mod]->name, m_mods[mod]->resources[i]);
                 m_enabledModOrder.push_back(m_mods[mod]);
@@ -318,6 +348,8 @@ ErrorCode ModManager::enableMod(int mod)
                     if(!deleteDir(m_gameDir + "ScriptCache"))
                         return Error::FAILED_DELETE_SCRIPT_CACHE;
                 }
+
+                // Refresh world and inventory in parent window due to prompts
             }
         }
         else
@@ -342,7 +374,12 @@ ErrorCode ModManager::disableMod(int mod)
                     m_gameConfig->remove(i);
                     m_enabledModOrder.remove(i);
                     m_mods[mod]->enabled = false;
-                    //TODO remove plugin files
+                    for(int j=0; j<m_mods[mod]->plugins.size(); j++)
+                    {
+                        if(!DISALLOWED_PLUGIN_FILENAMES.contains(m_mods[mod]->plugins[j]))
+                            QFile::remove(m_gameDir + m_mods[mod]->plugins[j] + ".dll");
+                    }
+                    break;
                 }
             }
         }
@@ -402,6 +439,41 @@ ErrorCode ModManager::save()
     if(m_loaded)
         return m_gameConfig->save();
     return Error::MODS_NOT_LOADED;
+}
+
+ErrorCode ModManager::refreshWorld()
+{
+    if(m_dataDirValid)
+        deleteDir(m_dataDir + WORLDS_DIR);
+    else
+        return Error::DATA_DIR_INVALID;
+
+    return Error::NO_ERROR;
+}
+
+ErrorCode ModManager::refreshInventory()
+{
+    if(m_dataDirValid)
+        deleteDir(m_dataDir + INVENTORY_DIR);
+    else
+        return Error::DATA_DIR_INVALID;
+
+    return Error::NO_ERROR;
+}
+
+int ModManager::installPlugin(int modIndex, QString modName, QString plugin)
+{
+    // Install plugin only if name not disallowed
+    if(!DISALLOWED_PLUGIN_FILENAMES.contains(plugin))
+    {
+        QString sourceFile = m_gameDir + MODS_DIR + modName + "/data/" + plugin + ".dll";
+        QFileInfo pluginFileInfo(sourceFile);
+        QString destinationFile = m_gameDir + pluginFileInfo.fileName();qDebug()<<sourceFile<<destinationFile;
+        QFile::copy(sourceFile, destinationFile);
+        return m_gameConfig->addPlugin(modIndex, modName, plugin);
+    }
+
+    return -1;
 }
 
 bool ModManager::deleteDir(const QString& path)

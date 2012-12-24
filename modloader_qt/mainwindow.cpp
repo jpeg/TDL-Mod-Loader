@@ -16,8 +16,32 @@ MainWindow::MainWindow(QWidget *parent) :
     errorMessageBox = new QMessageBox;
     errorMessageBox->setIcon(QMessageBox::Critical);
 
+    // Find application data directory
+    QString testPath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+#ifdef WIN32
+    for(int i=0; i<testPath.size(); i++) //replace '\' with '/' as Windows fix
+    {
+        if(testPath[i] == QChar('\\'))
+            testPath[i] = QChar('/');
+    }
+#endif
+    QString dataPath;
+    while(testPath.contains("AppData") || testPath.contains("Application Data"))
+    {
+        dataPath = testPath;
+        for(int i=testPath.length()-1; i>=0; i--)
+        {
+            if(testPath[i] == QChar('/'))
+            {
+                testPath.truncate(i);
+                break;
+            }
+        }
+    }
+    dataPath.append(QChar('/'));
+
     // Initialize Mod Manager
-    modManager = new ModManager(gamePath);
+    modManager = new ModManager(gamePath, dataPath);
     while(!modManager->getGameDirectoryValid())
     {
         // Check gamepath and have user select if invalid
@@ -35,10 +59,10 @@ MainWindow::MainWindow(QWidget *parent) :
         modManager->checkGameDirectory(gamePath);
     }
     settings->setValue("game/path", gamePath);
-    showError(modManager->load("C:/Users/Jason/AppData/Roaming/Sandswept Studios/The Dead Linger/tdlversion.txt"));
+    showError(modManager->load());
     if(gameVersion != modManager->getVersion())
         settings->setValue("game/version", modManager->getVersion()); //may need to do something special for updates?
-modManager->save();//TODO fix and remove
+
     // Set up tree view model for mod list
     QStandardItem* root = modListTreeModel.invisibleRootItem();
     enabledModsItem = new QStandardItem(/*TODO icon,*/ "Enabled Mods");
@@ -178,6 +202,18 @@ void MainWindow::on_buttonEnableMod_clicked()
             enabledModsItem->appendRow(modItem);
             ui->buttonEnableMod->setText("Disable");
             showError(modManager->enableMod(modIndex));
+            if(modManager->getMods()->at(modIndex)->refreshWorld)
+            {
+                // Prompt user to delete game world
+                if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Worlds?", "This mod requires a fresh world, delete existing world?\n\nWARNING: This will erase ALL saved worlds.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+                    modManager->refreshWorld();
+            }
+            if(modManager->getMods()->at(modIndex)->refreshInventory)
+            {
+                // Prompt user to delete inventory
+                if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Inventory?", "This mod requires a fresh inventory, delete existing inventory?\n\nWARNING: This will erase ALL saved inventories.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+                    modManager->refreshInventory();
+            }
             showError(modManager->save());
         }
     }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>258</width>
-    <height>133</height>
+    <width>328</width>
+    <height>130</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -61,7 +61,12 @@
    <item>
     <widget class="QLabel" name="labelInfo">
      <property name="text">
-      <string>Copyright 2012 Jason Gassel. All rights reserved. </string>
+      <string>Copyright 2012 Jason Gassel. All rights reserved.
+The Dead Linger (TDL) by Sandswept Studios LLC.
+&quot;The Dead Linger&quot; Trademark belongs to Sandswept Studios LLC.</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </item>

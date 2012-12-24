@@ -26,6 +26,7 @@ static const int FAILED_DELETE_MOD              = 8;
 static const int FAILED_DELETE_SCRIPT_CACHE     = 9;
 static const int MODS_NOT_LOADED                = 10;
 static const int CANT_REMOVE_ENABLED_MOD        = 11;
+static const int DATA_DIR_INVALID               = 12;
 }
 
 #endif // ERRORCODES_H

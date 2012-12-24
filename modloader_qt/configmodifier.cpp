@@ -74,8 +74,8 @@ ErrorCode ConfigModifier::init(const QString &versionFilename, const QString &pl
                 while(line[index] != QChar('/'))
                     index++;
                 line.truncate(index);
-                QString modName = line;
-                activeMods.push_back(modName);
+                if(!activeMods.contains(line))
+                    activeMods.push_back(line); //mod name
             }
         }
     }
