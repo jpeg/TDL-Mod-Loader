@@ -226,6 +226,18 @@ void MainWindow::on_buttonEnableMod_clicked()
             }
             ui->buttonEnableMod->setText("Enable");
             showError(modManager->disableMod(modIndex));
+            if(modManager->getMods()->at(modIndex)->refreshWorld)
+            {
+                // Prompt user to delete game world
+                if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Worlds?", "This mod required a fresh world so continuing to use it may affect gameplay. Do you want to delete the existing world?\n\nWARNING: This will erase ALL saved worlds.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+                    modManager->refreshWorld();
+            }
+            if(modManager->getMods()->at(modIndex)->refreshInventory)
+            {
+                // Prompt user to delete inventory
+                if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Inventory?", "This mod required a fresh inventory so continuing to use it may affect gameplay. Do you want to delete the existing inventory?\n\nWARNING: This will erase ALL saved inventories.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+                    modManager->refreshInventory();
+            }
             showError(modManager->save());
         }
         else
