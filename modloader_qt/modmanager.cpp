@@ -91,12 +91,57 @@ ErrorCode ModManager::install(const QString& modArchivePath)
 
     if(m_gameDirValid)
     {
-        //TODO quazip to move files to mods/ dir
+        QuaZip zip(modArchivePath);
+        if(!zip.open(QuaZip::mdUnzip))
+            return Error::FAILED_OPEN_MOD_ARCHIVE;
+
+        // Read mod name from install.cfg in ZIP file
+        QuaZipFile configFile(&zip);
+        zip.setCurrentFile("install.cfg", QuaZip::csInsensitive);
+        Mod* newMod = new Mod;
+        ErrorCode error = Error::INVALID_MOD_ARCHIVE_CONFIG;
+        if(configFile.open(QIODevice::ReadOnly) && configFile.getZipError() == UNZ_OK)
+        {
+            QTextStream configIn(&configFile);
+            error = parseModConfig(newMod, &configIn);
+        }
+        configFile.close();
+        if(error != Error::NO_ERROR)
+        {
+            delete newMod;
+            return error;
+        }
+        //TODO make sure don't need the following:
+        //if(newMod->name[modName.length()-1] == QChar('\n') || newMod->name[modName.length()-1] == QChar('\n'))
+        //    newMod->name.chop(1);
+
+        // Move files from ZIP to mods/ dir
+        QFile outputFile;
+        bool currentFileValid = zip.goToFirstFile();
+        QuaZipFile currentFile(&zip);
+        while(currentFileValid)
+        {
+            //QuaZipFileInfo currentFileInfo(currentFile);
+            qDebug()<<"file"<<currentFile.getFileName();
+            if(!currentFile.getFileName().isEmpty() && !currentFile.getFileName().isNull())
+            {
+                currentFile.open(QIODevice::ReadOnly);
+                while(false)//putchar getchar
+                {
+                    //TODO write data
+                }
+                currentFile.close();
+            }
+            currentFileValid = zip.goToNextFile();
+        }
+
+        zip.close();
 
         // Load the newly installed mod if mods have been loaded
         if(m_loaded)
         {
-            //TODO
+            qDebug() << "Added mod" << m_mods.size() << newMod->name;
+            m_mods.push_back(newMod);
         }
     }
     else
@@ -127,6 +172,7 @@ ErrorCode ModManager::remove(int mod)
     // Remove from mod list
     if(m_loaded)
     {
+        qDebug() << "Removed mod" << mod << m_mods[mod]->name;
         m_mods.remove(mod);
     }
 
@@ -158,110 +204,9 @@ ErrorCode ModManager::load()
                 QFile modConfigFile(modDir.absolutePath() + QChar('/') + modDir[0]);
                 if(!modConfigFile.open(QIODevice::ReadOnly | QIODevice::Text))
                     return Error::FAILED_OPEN_MOD_CONFIG_FILE;
-                Mod* mod = new Mod;
-                bool modName = false, modPrettyName = false, modAuthor = false, modVersion = false, modGameVersion = false, modDoesSomething = false;
-                mod->enabled = false;
-                mod->refreshScriptCache = false;
-                qDebug() << "Loading mod" << m_mods.size();
-
                 QTextStream modConfigIn(&modConfigFile);
-                while(!modConfigIn.atEnd())
-                {
-                    QString line = modConfigIn.readLine();
-
-                    // Ignore comments
-                    if(line.contains("#"))
-                    {
-                        for(int j=0; j<line.length(); j++)
-                        {
-                            if(line[j] == QChar('#'))
-                            {
-                                line.truncate(j);
-                                break;
-                            }
-                        }
-                    }
-
-                    if(line.contains("="))
-                    {
-                        // Find value after '=' in config
-                        int index = 1;
-                        while(line[index-1] != QChar('='))
-                            index++;
-                        if(index >= line.length())
-                            continue;
-                        QString value = "";
-                        for(int j=index; j<line.length(); j++)
-                            value.append(line[j]);
-
-                        // Store config values
-                        if(!value.isEmpty() && value != "")
-                        {
-                            if(line.contains("prettyName=", Qt::CaseInsensitive))
-                            {
-                                mod->prettyName = value;
-                                modPrettyName = true;
-                                qDebug() << "Mod Pretty Name:" << mod->prettyName;
-                            }
-                            else if(line.contains("name=", Qt::CaseInsensitive))
-                            {
-                                mod->name = value.remove(QRegExp("\\s")); //remove whitespace from internal name
-                                modName = true;
-                                qDebug() << "Mod Name:" << mod->name;
-                            }
-                            else if(line.contains("author=", Qt::CaseInsensitive))
-                            {
-                                mod->author = value;
-                                modAuthor = true;
-                                qDebug() << "Mod Author:" << mod->author;
-                            }
-                            else if(line.contains("gameVersion=", Qt::CaseInsensitive))
-                            {
-                                QTextStream convert(&value, QIODevice::ReadOnly);
-                                convert >> mod->gameVersion;
-                                if(mod->gameVersion > 0)
-                                    modGameVersion = true;
-                                qDebug() << "Mod Game Version:" << mod->gameVersion;
-                            }
-                            else if(line.contains("version=", Qt::CaseInsensitive))
-                            {
-                                mod->version = value;
-                                modVersion = true;
-                                qDebug() << "Mod Version:" << mod->version;
-                            }
-                            else if(line.contains("plugin=", Qt::CaseInsensitive))
-                            {
-                                mod->plugins.push_back(value);
-                                modDoesSomething = true;
-                                qDebug() << "Mod Plugin:" << mod->plugins.back();
-                            }
-                            else if(line.contains("resource=", Qt::CaseInsensitive))
-                            {
-                                mod->resources.push_back(value);
-                                modDoesSomething = true;
-                                qDebug() << "Mod Resource:" << mod->resources.back();
-                            }
-                            else if(line.contains("refreshScriptCache=true", Qt::CaseInsensitive))
-                            {
-                                mod->refreshScriptCache = true;
-                                qDebug() << "Mod Refresh Script Cache: true";
-                            }
-                            else if(line.contains("refreshWorld=true", Qt::CaseInsensitive))
-                            {
-                                mod->refreshWorld = true;
-                                qDebug() << "Mod Refresh World: true";
-                            }
-                            else if(line.contains("refreshInventory=true", Qt::CaseInsensitive))
-                            {
-                                mod->refreshInventory = true;
-                                qDebug() << "Mod Refresh Inventory: true";
-                            }
-                        }
-                    }
-                }
-
-                // Add mod if it has all config needed
-                if(modName && modPrettyName && modAuthor && modVersion && modGameVersion && modDoesSomething)
+                Mod* mod = new Mod;
+                if(parseModConfig(mod, &modConfigIn) == Error::NO_ERROR)
                 {
                     qDebug() << "Added mod" << m_mods.size() << mod->name;
                     m_mods.push_back(mod);
@@ -461,7 +406,116 @@ ErrorCode ModManager::refreshInventory()
     return Error::NO_ERROR;
 }
 
-int ModManager::installPlugin(int modIndex, QString modName, QString plugin)
+ErrorCode ModManager::parseModConfig(Mod* modPtr, QTextStream* modConfigIn)
+{
+    bool modName = false, modPrettyName = false, modAuthor = false, modVersion = false, modGameVersion = false, modDoesSomething = false;
+    modPtr->enabled = false;
+    modPtr->refreshScriptCache = false;
+    qDebug() << "Loading mod" << m_mods.size();
+
+    while(!modConfigIn->atEnd())
+    {
+        QString line = modConfigIn->readLine();
+
+        // Ignore comments
+        if(line.contains("#"))
+        {
+            for(int j=0; j<line.length(); j++)
+            {
+                if(line[j] == QChar('#'))
+                {
+                    line.truncate(j);
+                    break;
+                }
+            }
+        }
+
+        if(line.contains("="))
+        {
+            // Find value after '=' in config
+            int index = 1;
+            while(line[index-1] != QChar('='))
+                index++;
+            if(index >= line.length())
+                continue;
+            QString value = "";
+            for(int j=index; j<line.length(); j++)
+                value.append(line[j]);
+
+            // Store config values
+            if(!value.isEmpty() && value != "")
+            {
+                if(line.contains("prettyName=", Qt::CaseInsensitive))
+                {
+                    modPtr->prettyName = value;
+                    modPrettyName = true;
+                    qDebug() << "Mod Pretty Name:" << modPtr->prettyName;
+                }
+                else if(line.contains("name=", Qt::CaseInsensitive))
+                {
+                    modPtr->name = value.remove(QRegExp("\\s")); //remove whitespace from internal name
+                    modName = true;
+                    qDebug() << "Mod Name:" << modPtr->name;
+                }
+                else if(line.contains("author=", Qt::CaseInsensitive))
+                {
+                    modPtr->author = value;
+                    modAuthor = true;
+                    qDebug() << "Mod Author:" << modPtr->author;
+                }
+                else if(line.contains("gameVersion=", Qt::CaseInsensitive))
+                {
+                    QTextStream convert(&value, QIODevice::ReadOnly);
+                    convert >> modPtr->gameVersion;
+                    if(modPtr->gameVersion > 0)
+                        modGameVersion = true;
+                    qDebug() << "Mod Game Version:" << modPtr->gameVersion;
+                }
+                else if(line.contains("version=", Qt::CaseInsensitive))
+                {
+                    modPtr->version = value;
+                    modVersion = true;
+                    qDebug() << "Mod Version:" << modPtr->version;
+                }
+                else if(line.contains("plugin=", Qt::CaseInsensitive))
+                {
+                    modPtr->plugins.push_back(value);
+                    modDoesSomething = true;
+                    qDebug() << "Mod Plugin:" << modPtr->plugins.back();
+                }
+                else if(line.contains("resource=", Qt::CaseInsensitive))
+                {
+                    modPtr->resources.push_back(value);
+                    modDoesSomething = true;
+                    qDebug() << "Mod Resource:" << modPtr->resources.back();
+                }
+                else if(line.contains("refreshScriptCache=true", Qt::CaseInsensitive))
+                {
+                    modPtr->refreshScriptCache = true;
+                    qDebug() << "Mod Refresh Script Cache: true";
+                }
+                else if(line.contains("refreshWorld=true", Qt::CaseInsensitive))
+                {
+                    modPtr->refreshWorld = true;
+                    qDebug() << "Mod Refresh World: true";
+                }
+                else if(line.contains("refreshInventory=true", Qt::CaseInsensitive))
+                {
+                    modPtr->refreshInventory = true;
+                    qDebug() << "Mod Refresh Inventory: true";
+                }
+            }
+        }
+    }
+
+    if(modName && modPrettyName && modAuthor && modVersion && modGameVersion && modDoesSomething)
+    {
+        return Error::NO_ERROR;
+    }
+    return Error::FAILED_PARSE_MOD_CONFIG;
+}
+
+int ModManager::installPlugin(int modIndex, const QString& modName, const QString& plugin)
 {
     // Install plugin only if name not disallowed
     if(!DISALLOWED_PLUGIN_FILENAMES.contains(plugin))

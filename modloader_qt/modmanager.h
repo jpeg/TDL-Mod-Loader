@@ -68,6 +68,9 @@
 #include <QMessageBox>
 #include <QDebug>
 
+#include "quazip/quazip.h"
+#include "quazip/quazipfile.h"
+
 #include "configmodifier.h"
 #include "errorcodes.h"
 
@@ -134,7 +137,8 @@ public:
     ErrorCode refreshInventory();
 
 private:
-    int installPlugin(int modIndex, QString modName, QString plugin);
+    ErrorCode parseModConfig(Mod *modPtr, QTextStream *modConfigIn);
+    int installPlugin(int modIndex, const QString& modName, const QString& plugin);
     bool deleteDir(const QString& path);
 };
 

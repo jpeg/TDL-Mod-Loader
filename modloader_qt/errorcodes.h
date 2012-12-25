@@ -27,6 +27,8 @@ static const int FAILED_DELETE_SCRIPT_CACHE     = 9;
 static const int MODS_NOT_LOADED                = 10;
 static const int CANT_REMOVE_ENABLED_MOD        = 11;
 static const int DATA_DIR_INVALID               = 12;
+static const int FAILED_PARSE_MOD_CONFIG        = 13;
+static const int INVALID_MOD_ARCHIVE_CONFIG         = 14;
 }
 
 #endif // ERRORCODES_H

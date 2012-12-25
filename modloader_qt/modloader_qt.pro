@@ -26,3 +26,6 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui \
     about.ui
+
+
+LIBS += quazip1.dll
