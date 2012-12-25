@@ -111,25 +111,47 @@ ErrorCode ModManager::install(const QString& modArchivePath)
             delete newMod;
             return error;
         }
-        //TODO make sure don't need the following:
-        //if(newMod->name[modName.length()-1] == QChar('\n') || newMod->name[modName.length()-1] == QChar('\n'))
-        //    newMod->name.chop(1);
+
+        // If a version of this mod already is installed remove it
+        int existingMod = -1;
+        for(int i=0; i<m_mods.size(); i++)
+        {
+            if(m_mods[i]->name == newMod->name)
+            {
+                remove(i, true);
+                existingMod = i;
+                break;
+            }
+        }
+
+        QString modDirectory = m_gameDir + MODS_DIR + newMod->name + QChar('/');
+
+        // Build directory structure in mods/ dir
+        QuaZipDir currentDir(&zip);
+        QDir destinationDir(m_gameDir + MODS_DIR);
+        destinationDir.mkpath(modDirectory);
+        destinationDir.cd(newMod->name);
+        createArchiveDirectoryStructure(&currentDir, &destinationDir);
 
         // Move files from ZIP to mods/ dir
-        QFile outputFile;
-        bool currentFileValid = zip.goToFirstFile();
         QuaZipFile currentFile(&zip);
+        QFile destinationFile;
+        bool currentFileValid = zip.goToFirstFile();
+        char buffer[4096];
         while(currentFileValid)
         {
-            //QuaZipFileInfo currentFileInfo(currentFile);
-            qDebug()<<"file"<<currentFile.getFileName();
-            if(!currentFile.getFileName().isEmpty() && !currentFile.getFileName().isNull())
+            if(!(zip.getCurrentFileName()[zip.getCurrentFileName().length()] == QChar('/')))
             {
+                // Write to file since not directory
                 currentFile.open(QIODevice::ReadOnly);
-                while(false)//putchar getchar
+                destinationFile.setFileName(modDirectory + zip.getCurrentFileName());
+                destinationFile.open(QIODevice::WriteOnly | QIODevice::Truncate);
+                while(!currentFile.atEnd())
                 {
-                    //TODO write data
+                    qint64 bytes = currentFile.read(buffer, 4096);
+                    destinationFile.write(buffer, bytes);
                 }
+                destinationFile.close();
                 currentFile.close();
             }
             currentFileValid = zip.goToNextFile();
@@ -140,8 +162,16 @@ ErrorCode ModManager::install(const QString& modArchivePath)
         // Load the newly installed mod if mods have been loaded
         if(m_loaded)
         {
-            qDebug() << "Added mod" << m_mods.size() << newMod->name;
-            m_mods.push_back(newMod);
+            if(existingMod < 0)
+            {
+                qDebug() << "Added mod" << m_mods.size() << newMod->name;
+                m_mods.push_back(newMod);
+            }
+            else
+            {
+                qDebug() << "Replaced mod" << existingMod << newMod->name;
+                m_mods[existingMod] = newMod;
+            }
         }
     }
     else
@@ -150,7 +180,7 @@ ErrorCode ModManager::install(const QString& modArchivePath)
     return Error::NO_ERROR;
 }
 
-ErrorCode ModManager::remove(int mod)
+ErrorCode ModManager::remove(int mod, bool keepSpot)
 {
     if(!(mod >=0 && mod < m_mods.size()))
         return Error::INVALID_MOD_ID;
@@ -173,7 +203,9 @@ ErrorCode ModManager::remove(int mod)
     if(m_loaded)
     {
         qDebug() << "Removed mod" << mod << m_mods[mod]->name;
-        m_mods.remove(mod);
+        delete m_mods[mod];
+        if(!keepSpot)
+            m_mods.remove(mod);
     }
 
     return Error::NO_ERROR;
@@ -323,6 +355,12 @@ ErrorCode ModManager::disableMod(int mod)
                     {
                         if(!DISALLOWED_PLUGIN_FILENAMES.contains(m_mods[mod]->plugins[j]))
                             QFile::remove(m_gameDir + m_mods[mod]->plugins[j] + ".dll");
+                    }
+                    if(m_mods[mod]->refreshScriptCache)
+                    {
+                        // Delete script cache
+                        if(!deleteDir(m_gameDir + "ScriptCache"))
+                            return Error::FAILED_DELETE_SCRIPT_CACHE;
                     }
                     break;
                 }
@@ -551,4 +589,21 @@ bool ModManager::deleteDir(const QString& path)
     deleted = dir.rmdir(path);
 
     return deleted;
+}
+
+ErrorCode ModManager::createArchiveDirectoryStructure(QuaZipDir* currentDir, QDir* destinationDir)
+{
+    for(int i=0; i<currentDir->entryList().size(); i++)
+    {
+        if(currentDir->entryList()[i].at(currentDir->entryList()[i].length()-1) == QChar('/'))
+        {
+            destinationDir->mkdir(currentDir->entryList()[i]);
+            destinationDir->cd(currentDir->entryList()[i]);
+            currentDir->cd(currentDir->entryList()[i]);
+            createArchiveDirectoryStructure(currentDir, destinationDir);
+            currentDir->cdUp();
+            destinationDir->cdUp();
+        }
+    }
+    return Error::NO_ERROR;
 }

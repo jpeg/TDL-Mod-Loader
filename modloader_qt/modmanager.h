@@ -70,6 +70,7 @@
 
 #include "quazip/quazip.h"
 #include "quazip/quazipfile.h"
+#include "quazip/quazipdir.h"
 
 #include "configmodifier.h"
 #include "errorcodes.h"
@@ -122,7 +123,7 @@ public:
     void checkGameDirectory(const QString& gameDirectory);
     void checkDataDirectory(const QString& dataDirectory);
     ErrorCode install(const QString& modArchivePath);
-    ErrorCode remove(int mod);
+    ErrorCode remove(int mod, bool keepSpot = false);
     ErrorCode load();
     bool getGameDirectoryValid();
     int getVersion();
@@ -140,6 +141,7 @@ private:
     ErrorCode parseModConfig(Mod *modPtr, QTextStream *modConfigIn);
     int installPlugin(int modIndex, const QString& modName, const QString& plugin);
     bool deleteDir(const QString& path);
+    ErrorCode createArchiveDirectoryStructure(QuaZipDir* currentDir, QDir* destinationDir);
 };
 
 #endif // MODMANAGER_H

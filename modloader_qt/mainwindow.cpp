@@ -170,14 +170,20 @@ void MainWindow::on_actionAbout_triggered()
 void MainWindow::on_buttonInstallMod_clicked()
 {
     QString modArchive = QFileDialog::getOpenFileName(this, "Select mod to install...", "./", "ZIP Files (*.zip)");
+    int numMods = modManager->getMods()->size();
     ErrorCode error = modManager->install(modArchive);
     showError(error);
-    if(error == Error::NO_ERROR)
+    if(error == Error::NO_ERROR && modManager->getMods()->size() > numMods)
     {
+        // New mod added, add it to list
         QStandardItem* modItem = new QStandardItem(/*TODO icon,*/ modManager->getMods()->back()->prettyName);
         modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
         allModsItem->appendRow(modItem);
     }
+
+    // Refresh mod info displayed
+    if(ui->treeViewMods->selectionModel()->selectedIndexes().size() > 0)
+        on_treeViewMods_clicked(ui->treeViewMods->selectionModel()->selectedIndexes().at(0));
 }
 
 void MainWindow::on_buttonEnableMod_clicked()
