@@ -1,13 +1,29 @@
-/**********************************************************
+/******************************************************************************
  * configmodifier.h
  *
- * Author: Jason Gassel
+ * Copyright (C) 2012 Jason Gassel. All rights reserved.
+ *
+ * This file is part of the Jackal Mod Loader.
+ *
+ * Jackal Mod Loader is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Jackal Mod Loader is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Jackal Mod Loader.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
  * Desc: Class to handle modifying of config files. All
  *       config files use a [Mods] section to seperate
  *       mods section from the base game. The mod number
  *       defines load order, each should have a unique
  *       number with lower ones loading sooner.
- *
  *
  * Interface:
  *   int init(const QString& versionFilename, const QString& pluginsFilename, const QString& resourceFilename, QVector<QString>& activeMods)
@@ -41,7 +57,7 @@
  *
  *   void removeAll()
  *     Removes config of all mods.
- **********************************************************/
+ ******************************************************************************/
 
 #ifndef CONFIGMODIFIER_H
 #define CONFIGMODIFIER_H

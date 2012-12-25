@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>328</width>
-    <height>130</height>
+    <width>383</width>
+    <height>362</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -59,14 +59,46 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="labelInfo">
+    <widget class="QLabel" name="labelCopyright">
      <property name="text">
-      <string>Copyright 2012 Jason Gassel. All rights reserved.
-The Dead Linger (TDL) by Sandswept Studios LLC.
-&quot;The Dead Linger&quot; Trademark belongs to Sandswept Studios LLC.</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright (C) 2012 Jason Gassel. All rights reserved.&lt;/p&gt;&lt;p&gt;Source code may be found at &lt;a href=&quot;https://github.com/jpeg/TDL-Mod-Loader&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/jpeg/TDL-Mod-Loader&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::RichText</enum>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelTDLInfo">
+     <property name="text">
+      <string>The Dead Linger (TDL) by Sandswept Studios LLC.
+&quot;The Dead Linger&quot; trademark belongs to Sandswept Studios LLC.
+</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelLicense">
+     <property name="text">
+      <string>Jackal Mod Loader is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Jackal Mod Loader is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Jackal Mod Loader.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+</string>
      </property>
     </widget>
    </item>
