@@ -26,7 +26,19 @@ ModManager::ModManager(const QString& gameDirectory, const QString& dataDirector
     m_gameConfig = new ConfigModifier;
 
 #ifdef WIN32
-    DATA_SUB_DIR = "Roaming/Sandswept Studios/The Dead Linger/";
+    switch(QSysInfo::windowsVersion())
+    {
+    case QSysInfo::WV_2000:
+    case QSysInfo::WV_XP:
+        DATA_SUB_DIR = "Sandswept Studios/The Dead Linger/";
+        break;
+    case QSysInfo::WV_VISTA:
+    case QSysInfo::WV_WINDOWS7:
+    case QSysInfo::WV_WINDOWS8:
+    default:
+        DATA_SUB_DIR = "Roaming/Sandswept Studios/The Dead Linger/";
+        break;
+    }
 #endif
 
     VERSION_FILE = DATA_SUB_DIR + "tdlversion.txt";
