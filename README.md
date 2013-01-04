@@ -17,3 +17,5 @@ This project requires QuaZIP headers to compile along with requiring Qt, QuaZIP,
 Qt is a registered trademark of Digia plc and/or its subsidiaries.
 QuaZIP was written by Sergey A. Tachenov, AKA Alqualos.
 zlib was written by Jean-loup Gailly (compression) and Mark Adler (decompression).
+
+Silk Icon Set 1.3 by Mark James http://www.famfamfam.com/lab/icons/silk/

@@ -92,6 +92,13 @@ private:
     QStandardItemModel modListTreeModel;
     QStandardItem* enabledModsItem;
     QStandardItem* allModsItem;
+
+    // Icons
+    QIcon* iconFolder;
+    QIcon* iconEnabledMod;
+    QIcon* iconDisabledMod;
+    QIcon* iconAddMod;
+    QIcon* iconRemoveMod;
 };
 
 #endif // MAINWINDOW_H

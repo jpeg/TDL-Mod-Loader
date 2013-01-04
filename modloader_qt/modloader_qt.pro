@@ -27,5 +27,7 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui \
     about.ui
 
+RESOURCES += \
+    icons.qrc
 
 LIBS += quazip1.dll

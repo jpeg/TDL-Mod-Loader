@@ -41,6 +41,10 @@
         <property name="text">
          <string>Install/Update Mod</string>
         </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/add.png</normaloff>:/icons/add.png</iconset>
+        </property>
        </widget>
       </item>
      </layout>
@@ -118,12 +122,20 @@
         <property name="text">
          <string>Enable</string>
         </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/plugin_add.png</normaloff>:/icons/plugin_add.png</iconset>
+        </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="buttonModOrderUp">
         <property name="text">
          <string>Move Up</string>
+        </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/arrow_up.png</normaloff>:/icons/arrow_up.png</iconset>
         </property>
        </widget>
       </item>
@@ -132,12 +144,20 @@
         <property name="text">
          <string>Move Down</string>
         </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/arrow_down.png</normaloff>:/icons/arrow_down.png</iconset>
+        </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="buttonRemoveMod">
         <property name="text">
          <string>Uninstall</string>
+        </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/delete.png</normaloff>:/icons/delete.png</iconset>
         </property>
        </widget>
       </item>
@@ -164,14 +184,22 @@
       <item>
        <widget class="QPushButton" name="buttonRefreshWorld">
         <property name="text">
-         <string>Reset World</string>
+         <string>Delete World</string>
+        </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/world_delete.png</normaloff>:/icons/world_delete.png</iconset>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="buttonRefreshInventory">
         <property name="text">
-         <string>Reset Inventory</string>
+         <string>Delete Inventory</string>
+        </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/cart_delete.png</normaloff>:/icons/cart_delete.png</iconset>
         </property>
        </widget>
       </item>
@@ -220,21 +248,37 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/information.png</normaloff>:/icons/information.png</iconset>
+   </property>
    <property name="text">
     <string>About</string>
    </property>
   </action>
   <action name="actionExit">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/door_out.png</normaloff>:/icons/door_out.png</iconset>
+   </property>
    <property name="text">
     <string>Exit</string>
    </property>
   </action>
   <action name="actionSettings">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/cog.png</normaloff>:/icons/cog.png</iconset>
+   </property>
    <property name="text">
     <string>Settings</string>
    </property>
   </action>
   <action name="actionOnline_Help">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/help.png</normaloff>:/icons/help.png</iconset>
+   </property>
    <property name="text">
     <string>Online Help</string>
    </property>
@@ -244,6 +288,8 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -26,6 +26,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    // Load icons
+    iconFolder = new QIcon(":/icons/folder.png");
+    iconEnabledMod = new QIcon(":/icons/plugin.png");
+    iconDisabledMod = new QIcon(":/icons/plugin_disabled.png");
+    iconAddMod = new QIcon(":/icons/plugin_add.png");
+    iconRemoveMod = new QIcon(":/icons/plugin_delete.png");
+
     // Load settings
     QCoreApplication::setOrganizationName("Utudio");
     QCoreApplication::setApplicationName("Jackal Mod Loader");
@@ -87,21 +94,24 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Set up tree view model for mod list
     QStandardItem* root = modListTreeModel.invisibleRootItem();
-    enabledModsItem = new QStandardItem(QIcon::fromTheme("folder"), "Enabled Mods");
-    allModsItem = new QStandardItem(QIcon::fromTheme("folder"), "All Mods");
+    enabledModsItem = new QStandardItem(*iconFolder, "Enabled Mods");
+    allModsItem = new QStandardItem(*iconFolder, "All Mods");
     enabledModsItem->setFlags(enabledModsItem->flags() & ~Qt::ItemIsEditable);
     allModsItem->setFlags(allModsItem->flags() & ~Qt::ItemIsEditable);
     root->appendRow(enabledModsItem);
     root->appendRow(allModsItem);
     for(int i=0; i<modManager->getEnabledModOrder()->size(); i++)
     {
-        QStandardItem* modItem = new QStandardItem(/*TODO icon,*/ modManager->getEnabledModOrder()->at(i)->prettyName);
+        QStandardItem* modItem = new QStandardItem(*iconEnabledMod, modManager->getEnabledModOrder()->at(i)->prettyName);
         modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
         enabledModsItem->appendRow(modItem);
     }
     for(int i=0; i<modManager->getMods()->size(); i++)
     {
-        QStandardItem* modItem = new QStandardItem(/*TODO icon,*/ modManager->getMods()->at(i)->prettyName);
+        QIcon* icon = iconDisabledMod;
+        if(modManager->getMods()->at(i)->enabled)
+            icon = iconEnabledMod;
+        QStandardItem* modItem = new QStandardItem(*icon, modManager->getMods()->at(i)->prettyName);
         modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
         allModsItem->appendRow(modItem);
     }
@@ -222,7 +232,7 @@ void MainWindow::on_buttonInstallMod_clicked()
     if(error == Error::NO_ERROR && modManager->getMods()->size() > numMods)
     {
         // New mod added, add it to list
-        QStandardItem* modItem = new QStandardItem(/*TODO icon,*/ modManager->getMods()->back()->prettyName);
+        QStandardItem* modItem = new QStandardItem(*iconDisabledMod, modManager->getMods()->back()->prettyName);
         modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
         allModsItem->appendRow(modItem);
 
@@ -251,7 +261,9 @@ void MainWindow::on_buttonEnableMod_clicked()
                     break;
                 }
             }
+            allModsItem->child(modIndex)->setIcon(*iconDisabledMod);
             ui->buttonEnableMod->setText("Enable");
+            ui->buttonEnableMod->setIcon(*iconAddMod);
             showError(modManager->disableMod(modIndex));
             if(modManager->getMods()->at(modIndex)->refreshWorld)
             {
@@ -272,10 +284,12 @@ void MainWindow::on_buttonEnableMod_clicked()
         else
         {
             // Enable mod
-            QStandardItem* modItem = new QStandardItem(/*TODO icon,*/ modManager->getMods()->at(modIndex)->prettyName);
+            QStandardItem* modItem = new QStandardItem(*iconEnabledMod, modManager->getMods()->at(modIndex)->prettyName);
             modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
             enabledModsItem->appendRow(modItem);
+            allModsItem->child(modIndex)->setIcon(*iconEnabledMod);
             ui->buttonEnableMod->setText("Disable");
+            ui->buttonEnableMod->setIcon(*iconRemoveMod);
             showError(modManager->enableMod(modIndex));
             if(modManager->getMods()->at(modIndex)->refreshWorld)
             {
@@ -419,9 +433,15 @@ void MainWindow::on_treeViewMods_clicked(const QModelIndex &index)
 
     ui->buttonEnableMod->setEnabled(true);
     if(mod->enabled)
+    {
         ui->buttonEnableMod->setText("Disable");
+        ui->buttonEnableMod->setIcon(*iconRemoveMod);
+    }
     else
+    {
         ui->buttonEnableMod->setText("Enable");
+        ui->buttonEnableMod->setIcon(*iconAddMod);
+    }
     ui->buttonRemoveMod->setEnabled(true);
 }
 
