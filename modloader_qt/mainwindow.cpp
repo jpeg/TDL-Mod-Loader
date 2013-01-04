@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setApplicationName("Jackal Mod Loader");
     QCoreApplication::setApplicationVersion("0.1.0");
     settings = new QSettings("settings.ini", QSettings::IniFormat);
+    bool debug = settings->value("settings/debug", false).toBool();
     QString gamePath = settings->value("game/path", "C:/Sandswept Studios/The Dead Linger Alpha/").toString();
     int gameVersion = settings->value("game/version", -1).toInt();
 
@@ -86,8 +87,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Set up tree view model for mod list
     QStandardItem* root = modListTreeModel.invisibleRootItem();
-    enabledModsItem = new QStandardItem(/*TODO icon,*/ "Enabled Mods");
-    allModsItem = new QStandardItem(/*TODO icon,*/ "All Mods");
+    enabledModsItem = new QStandardItem(QIcon::fromTheme("folder"), "Enabled Mods");
+    allModsItem = new QStandardItem(QIcon::fromTheme("folder"), "All Mods");
     enabledModsItem->setFlags(enabledModsItem->flags() & ~Qt::ItemIsEditable);
     allModsItem->setFlags(allModsItem->flags() & ~Qt::ItemIsEditable);
     root->appendRow(enabledModsItem);
@@ -123,6 +124,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //TODO actually have settings
     ui->actionSettings->setEnabled(false);
+
+    connect(ui->statusBar, SIGNAL(messageChanged(QString)), this, SLOT(statusBar_message_changed(QString)));
+    ui->statusBar->setVisible(debug);
+    updateStatusBar("");
 }
 
 MainWindow::~MainWindow()
@@ -167,6 +172,26 @@ int MainWindow::getSelectedModIndex()
     return modIndex; //selected catagory label rather than mod
 }
 
+void MainWindow::updateStatusBar(QString message)
+{
+    if(!message.isEmpty() && !message.isNull())
+        ui->statusBar->showMessage(message, 3000);
+    else
+        ui->statusBar->showMessage(""); //force message change
+}
+
+void MainWindow::statusBar_message_changed(QString message)
+{
+    // Only display if last message was cleared
+    if(message.isEmpty() || message.isNull())
+    {
+        QString text;
+        QTextStream status(&text);
+        status << "Loaded: " << modManager->getMods()->size() << "   Enabled: " << modManager->getEnabledModOrder()->size();
+        ui->statusBar->showMessage(text);
+    }
+}
+
 void MainWindow::on_actionSettings_triggered()
 {
     //TODO display settings window
@@ -200,6 +225,8 @@ void MainWindow::on_buttonInstallMod_clicked()
         QStandardItem* modItem = new QStandardItem(/*TODO icon,*/ modManager->getMods()->back()->prettyName);
         modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
         allModsItem->appendRow(modItem);
+
+        updateStatusBar("Installed mod: " + modManager->getMods()->back()->prettyName);
     }
 
     // Refresh mod info displayed
@@ -229,7 +256,7 @@ void MainWindow::on_buttonEnableMod_clicked()
             if(modManager->getMods()->at(modIndex)->refreshWorld)
             {
                 // Prompt user to delete game world
-                if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Worlds?", "This mod required a fresh world so continuing to use it may affect gameplay. Do you want to delete the existing world?\n\nWARNING: This will erase ALL saved worlds.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+                if(QMessageBox::Yes == QMessageBox::warning(this, "Delete World?", "This mod required a fresh world so continuing to use it may affect gameplay. Do you want to delete the existing world?\n\nWARNING: This will erase ALL saved worlds.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
                     modManager->refreshWorld();
             }
             if(modManager->getMods()->at(modIndex)->refreshInventory)
@@ -239,6 +266,8 @@ void MainWindow::on_buttonEnableMod_clicked()
                     modManager->refreshInventory();
             }
             showError(modManager->save());
+
+            updateStatusBar("Disabled mod: " + modManager->getMods()->at(modIndex)->prettyName);
         }
         else
         {
@@ -261,6 +290,8 @@ void MainWindow::on_buttonEnableMod_clicked()
                     modManager->refreshInventory();
             }
             showError(modManager->save());
+
+            updateStatusBar("Enabled mod: " + modManager->getMods()->at(modIndex)->prettyName);
         }
     }
 }
@@ -287,6 +318,8 @@ void MainWindow::on_buttonModOrderUp_clicked()
             QString temp = enabledModsItem->child(enabledModIndex-1)->text();
             enabledModsItem->child(enabledModIndex-1)->setText(enabledModsItem->child(enabledModIndex)->text());
             enabledModsItem->child(enabledModIndex)->setText(temp);
+
+            updateStatusBar("Changed mod order");
         }
     }
 }
@@ -313,6 +346,8 @@ void MainWindow::on_buttonModOrderDown_clicked()
             QString temp = enabledModsItem->child(enabledModIndex+1)->text();
             enabledModsItem->child(enabledModIndex+1)->setText(enabledModsItem->child(enabledModIndex)->text());
             enabledModsItem->child(enabledModIndex)->setText(temp);
+
+            updateStatusBar("Changed mod order");
         }
     }
 }
@@ -338,6 +373,7 @@ void MainWindow::on_buttonRemoveMod_clicked()
             showError(modManager->save());
         }
         allModsItem->removeRow(modIndex);
+        updateStatusBar("Removed mod: " + modManager->getMods()->at(modIndex)->prettyName);
         modManager->remove(modIndex);
     }
 }
@@ -392,4 +428,18 @@ void MainWindow::on_treeViewMods_clicked(const QModelIndex &index)
 void MainWindow::on_treeViewMods_activated(const QModelIndex &index)
 {
     on_treeViewMods_clicked(index);
+}
+
+void MainWindow::on_buttonRefreshWorld_clicked()
+{
+    // Prompt user to delete game world
+    if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Worlds?", "Are you sure you want to delete the existing world?\n\nWARNING: This will erase ALL saved worlds.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+        modManager->refreshWorld();
+}
+
+void MainWindow::on_buttonRefreshInventory_clicked()
+{
+    // Prompt user to delete inventory
+    if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Inventory?", "Are you sure you want to delete the existing inventory?\n\nWARNING: This will erase ALL saved inventories.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+        modManager->refreshInventory();
 }

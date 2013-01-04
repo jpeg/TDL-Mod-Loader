@@ -30,6 +30,7 @@
 #include <QFileDialog>
 #include <QTextStream>
 #include <QStandardItemModel>
+#include <QIcon>
 
 #include "about.h"
 
@@ -50,8 +51,11 @@ public:
 private:
     void showError(ErrorCode error);
     int getSelectedModIndex();
+    void updateStatusBar(QString message);
     
 private slots:
+    void statusBar_message_changed(QString message);
+
     void on_actionExit_triggered();
 
     void on_actionAbout_triggered();
@@ -73,6 +77,10 @@ private slots:
     void on_treeViewMods_activated(const QModelIndex &index);
 
     void on_actionOnline_Help_triggered();
+
+    void on_buttonRefreshWorld_clicked();
+
+    void on_buttonRefreshInventory_clicked();
 
 private:
     Ui::MainWindow *ui;
