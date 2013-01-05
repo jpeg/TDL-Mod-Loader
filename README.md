@@ -3,7 +3,7 @@ TDL-Mod-Loader
 
 Jackal Mod Loader
 
-Copyright (C) 2012 Jason Gassel. All rights reserved.
+Copyright (C) 2012-2013 Jason Gassel. All rights reserved.
 
 The Dead Linger (TDL) by Sandswept Studios LLC.
 "The Dead Linger" trademark belongs to Sandswept Studios LLC.

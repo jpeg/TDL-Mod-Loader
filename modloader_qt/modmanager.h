@@ -1,7 +1,7 @@
 /******************************************************************************
  * modmanager.h
  *
- * Copyright (C) 2012 Jason Gassel. All rights reserved.
+ * Copyright (C) 2012-2013 Jason Gassel. All rights reserved.
  *
  * This file is part of the Jackal Mod Loader.
  *
