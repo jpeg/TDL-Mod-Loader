@@ -26,6 +26,8 @@ Settings::Settings(QWidget *parent, QSettings* settings) :
     QDialog(parent),
     ui(new Ui::Settings)
 {
+    m_accept = false;
+
     ui->setupUi(this);
 
     this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -49,6 +51,7 @@ void Settings::on_buttonBox_clicked(QAbstractButton *button)
     case QDialogButtonBox::Ok:
         close = true;
     case QDialogButtonBox::Apply:
+        m_accept = true;
         m_settings->setValue("game/path", ui->lineEditGameInstallLocation->text());
         m_settings->setValue("settings/debug", ui->checkBoxStatusBar->isChecked());
         break;
@@ -58,6 +61,8 @@ void Settings::on_buttonBox_clicked(QAbstractButton *button)
     default:
         break;
     }
-    if(close)
-        this->close();
+    if(close && m_accept)
+        this->accept();
+    else if(close)
+        this->reject();
 }

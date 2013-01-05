@@ -44,6 +44,7 @@ private slots:
 private:
     Ui::Settings *ui;
     QSettings* m_settings;
+    bool m_accept;
 };
 
 #endif // SETTINGS_H
