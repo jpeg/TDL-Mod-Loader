@@ -79,7 +79,7 @@ ModManager::~ModManager()
         delete m_mods[i];
 }
 
-void ModManager::checkGameDirectory(const QString& gameDirectory)
+bool ModManager::checkGameDirectory(const QString& gameDirectory)
 {
     m_gameDir = gameDirectory;
     m_gameDirValid = true;
@@ -98,9 +98,11 @@ void ModManager::checkGameDirectory(const QString& gameDirectory)
         if(!gameDir.mkdir(MODS_DIR))
             m_gameDirValid = false;
     }
+
+    return m_gameDirValid;
 }
 
-void ModManager::checkDataDirectory(const QString& dataDirectory)
+bool ModManager::checkDataDirectory(const QString& dataDirectory)
 {
     m_dataDir = dataDirectory;
     m_dataDirValid = true;
@@ -110,6 +112,8 @@ void ModManager::checkDataDirectory(const QString& dataDirectory)
     {
         m_dataDirValid = false;
     }
+
+    return m_dataDirValid;
 }
 
 ErrorCode ModManager::install(const QString& modArchivePath)
@@ -335,12 +339,12 @@ QVector<ModManager::Mod *> *ModManager::getEnabledModOrder()
 
 ErrorCode ModManager::enableMod(int mod)
 {
-    if(m_loaded)
+    if(m_loaded && m_gameDirValid)
     {
         if(mod >= 0 && mod < m_mods.size())
         {
             if(!m_enabledModOrder.contains(m_mods[mod]))
-            {
+            {qDebug()<<"enabling"<<m_mods[mod]->name<<m_mods[mod]->refreshScriptCache;
                 for(int i=0; i<m_mods[mod]->plugins.size(); i++)
                     installPlugin(m_enabledModOrder.size(), m_mods[mod]->name, m_mods[mod]->plugins[i]);
                 for(int i=0; i<m_mods[mod]->resources.size(); i++)
@@ -369,7 +373,7 @@ ErrorCode ModManager::enableMod(int mod)
 
 ErrorCode ModManager::disableMod(int mod)
 {
-    if(m_loaded)
+    if(m_loaded && m_gameDirValid)
     {
         if(mod >= 0 && mod < m_mods.size())
         {
@@ -478,6 +482,8 @@ ErrorCode ModManager::parseModConfig(Mod* modPtr, QTextStream* modConfigIn)
     bool modName = false, modPrettyName = false, modAuthor = false, modVersion = false, modGameVersion = false, modDoesSomething = false;
     modPtr->enabled = false;
     modPtr->refreshScriptCache = false;
+    modPtr->refreshWorld = false;
+    modPtr->refreshInventory = false;
     qDebug() << "Loading mod" << m_mods.size();
 
     while(!modConfigIn->atEnd())
@@ -510,9 +516,6 @@ ErrorCode ModManager::parseModConfig(Mod* modPtr, QTextStream* modConfigIn)
                 value.append(line[j]);
 
             // Store config values
-            modPtr->refreshScriptCache = false;
-            modPtr->refreshWorld = false;
-            modPtr->refreshInventory = false;
             if(!value.isEmpty() && value != "")
             {
                 if(line.contains("prettyName=", Qt::CaseInsensitive))

@@ -140,8 +140,8 @@ private:
     QVector<Mod*> m_enabledModOrder;
 
 public:
-    void checkGameDirectory(const QString& gameDirectory);
-    void checkDataDirectory(const QString& dataDirectory);
+    bool checkGameDirectory(const QString& gameDirectory);
+    bool checkDataDirectory(const QString& dataDirectory);
     ErrorCode install(const QString& modArchivePath);
     ErrorCode remove(int mod, bool keepSpot = false);
     ErrorCode load();
