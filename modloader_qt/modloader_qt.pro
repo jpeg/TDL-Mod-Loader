@@ -16,16 +16,19 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     configmodifier.cpp \
     modmanager.cpp \
-    about.cpp
+    about.cpp \
+    settings.cpp
 
 HEADERS  += mainwindow.h \
     configmodifier.h \
     errorcodes.h \
     modmanager.h \
-    about.h
+    about.h \
+    settings.h
 
 FORMS    += mainwindow.ui \
-    about.ui
+    about.ui \
+    settings.ui
 
 RESOURCES += \
     icons.qrc

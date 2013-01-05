@@ -124,6 +124,7 @@ public:
         bool refreshScriptCache;
         bool refreshWorld;
         bool refreshInventory;
+        QPixmap icon;
     };
 
 private:

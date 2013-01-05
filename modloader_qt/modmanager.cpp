@@ -189,6 +189,7 @@ ErrorCode ModManager::install(const QString& modArchivePath)
         // Load the newly installed mod if mods have been loaded
         if(m_loaded)
         {
+            newMod->icon.load(modDirectory + "icon.png", "PNG");
             if(existingMod < 0)
             {
                 qDebug() << "Added mod" << m_mods.size() << newMod->name;
@@ -268,6 +269,7 @@ ErrorCode ModManager::load()
                 if(parseModConfig(mod, &modConfigIn) == Error::NO_ERROR)
                 {
                     qDebug() << "Added mod" << m_mods.size() << mod->name;
+                    mod->icon.load(modDir.absolutePath() + QChar('/') + "icon.png", "PNG");
                     m_mods.push_back(mod);
                 }
                 else

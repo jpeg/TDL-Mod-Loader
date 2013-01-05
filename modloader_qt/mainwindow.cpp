@@ -423,6 +423,7 @@ void MainWindow::on_treeViewMods_clicked(const QModelIndex &index)
         return;
     }
 
+    // Display mod info
     ui->labelModName->setText(mod->prettyName);
     ui->labelModAuthor->setText(mod->author);
     ui->labelModVersion->setText(mod->version);
@@ -443,6 +444,11 @@ void MainWindow::on_treeViewMods_clicked(const QModelIndex &index)
         ui->buttonEnableMod->setIcon(*iconAddMod);
     }
     ui->buttonRemoveMod->setEnabled(true);
+
+    // Display mod icon
+    ui->labelModIcon->setPixmap(mod->icon);
+    if(mod->icon.isNull())
+        ui->labelModIcon->setText("No Image");
 }
 
 void MainWindow::on_treeViewMods_activated(const QModelIndex &index)
