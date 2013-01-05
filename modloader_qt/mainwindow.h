@@ -33,6 +33,7 @@
 #include <QIcon>
 
 #include "about.h"
+#include "settings.h"
 
 #include "modmanager.h"
 

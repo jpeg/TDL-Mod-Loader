@@ -84,7 +84,8 @@ MainWindow::MainWindow(QWidget *parent) :
                 gamePath.truncate(i);
                 break;
             }
-        }qDebug()<<gamePath;
+        }
+        qDebug()<<gamePath;
         modManager->checkGameDirectory(gamePath);
     }
     settings->setValue("game/path", gamePath);
@@ -131,9 +132,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->treeViewMods->setHeaderHidden(true);
     ui->treeViewMods->setModel(&modListTreeModel);
-
-    //TODO actually have settings
-    ui->actionSettings->setEnabled(false);
 
     connect(ui->statusBar, SIGNAL(messageChanged(QString)), this, SLOT(statusBar_message_changed(QString)));
     ui->statusBar->setVisible(debug);
@@ -204,7 +202,25 @@ void MainWindow::statusBar_message_changed(QString message)
 
 void MainWindow::on_actionSettings_triggered()
 {
-    //TODO display settings window
+    QString oldGameDir = settings->value("game/path").toString();
+
+    Settings* w = new Settings(this, settings);
+    w->show();
+    int result = w->exec();
+
+    if(result == QDialog::Accepted)
+    {
+        ui->statusBar->setVisible(settings->value("settings/debug").toBool());
+
+        // Set game directory
+        if(!modManager->checkGameDirectory(settings->value("game/path").toString()))
+        {
+            // Invalid game directory
+            QMessageBox::critical(this, "Error", "Invalid game path selected, using old path.", QMessageBox::Ok, QMessageBox::Ok);
+            settings->setValue("game/path", oldGameDir);
+            modManager->checkGameDirectory(oldGameDir);
+        }
+    }
 }
 
 void MainWindow::on_actionExit_triggered()

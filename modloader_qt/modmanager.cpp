@@ -344,7 +344,7 @@ ErrorCode ModManager::enableMod(int mod)
         if(mod >= 0 && mod < m_mods.size())
         {
             if(!m_enabledModOrder.contains(m_mods[mod]))
-            {qDebug()<<"enabling"<<m_mods[mod]->name<<m_mods[mod]->refreshScriptCache;
+            {
                 for(int i=0; i<m_mods[mod]->plugins.size(); i++)
                     installPlugin(m_enabledModOrder.size(), m_mods[mod]->name, m_mods[mod]->plugins[i]);
                 for(int i=0; i<m_mods[mod]->resources.size(); i++)
