@@ -508,6 +508,9 @@ ErrorCode ModManager::parseModConfig(Mod* modPtr, QTextStream* modConfigIn)
                 value.append(line[j]);
 
             // Store config values
+            modPtr->refreshScriptCache = false;
+            modPtr->refreshWorld = false;
+            modPtr->refreshInventory = false;
             if(!value.isEmpty() && value != "")
             {
                 if(line.contains("prettyName=", Qt::CaseInsensitive))
