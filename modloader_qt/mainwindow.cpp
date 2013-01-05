@@ -36,7 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Load settings
     QCoreApplication::setOrganizationName("Utudio");
     QCoreApplication::setApplicationName("Jackal Mod Loader");
-    QCoreApplication::setApplicationVersion("0.1.0");
+    QCoreApplication::setApplicationVersion("0.1.1");
     settings = new QSettings("settings.ini", QSettings::IniFormat);
     bool debug = settings->value("settings/debug", false).toBool();
     QString gamePath = settings->value("game/path", "C:/Sandswept Studios/The Dead Linger Alpha/").toString();
