@@ -24,7 +24,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Mod Loader Settings</string>
+      <string>Mod Manager Settings</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

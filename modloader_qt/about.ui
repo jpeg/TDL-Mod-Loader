@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>383</width>
+    <width>392</width>
     <height>394</height>
    </rect>
   </property>
@@ -30,7 +30,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Jackal Mod Loader</string>
+      <string>Jackal Mod Manager</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignBottom|Qt::AlignHCenter</set>
@@ -96,18 +96,18 @@
    <item>
     <widget class="QLabel" name="labelLicense">
      <property name="text">
-      <string>Jackal Mod Loader is free software: you can redistribute it and/or modify
+      <string>Jackal Mod Manager is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-Jackal Mod Loader is distributed in the hope that it will be useful,
+Jackal Mod Manager is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
-along with Jackal Mod Loader.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+along with Jackal Mod Manager.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </string>
      </property>
     </widget>

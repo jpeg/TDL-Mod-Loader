@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -17,14 +17,16 @@ SOURCES += main.cpp\
     configmodifier.cpp \
     modmanager.cpp \
     about.cpp \
-    settings.cpp
+    settings.cpp \
+    updater.cpp
 
 HEADERS  += mainwindow.h \
     configmodifier.h \
     errorcodes.h \
     modmanager.h \
     about.h \
-    settings.h
+    settings.h \
+    updater.h
 
 FORMS    += mainwindow.ui \
     about.ui \

@@ -1,7 +1,7 @@
 TDL-Mod-Loader
 ==============
 
-Jackal Mod Loader
+Jackal Mod Manager
 
 Copyright (C) 2012-2013 Jason Gassel. All rights reserved.
 
@@ -10,7 +10,7 @@ The Dead Linger (TDL) by Sandswept Studios LLC.
 
 
 
-See the project wiki for information on using the program, please report problems using the GitHub issue system. If you need to contact the author directly for some reason send an email to pegelite@gmail.com with a subject line containing "Jackal Mod Loader".
+See the project wiki for information on using the program, please report problems using the GitHub issue system. If you need to contact the author directly for some reason send an email to pegelite@gmail.com with a subject line containing "Jackal Mod Manager".
 
 This project requires QuaZIP headers to compile along with requiring Qt, QuaZIP, and zlib dynamic libraries to run.
 
