@@ -249,6 +249,9 @@ void MainWindow::on_actionAbout_triggered()
 void MainWindow::on_buttonInstallMod_clicked()
 {
     QString modArchive = QFileDialog::getOpenFileName(this, "Select mod to install...", "./", "ZIP Files (*.zip)");
+    if(modArchive.isEmpty() || modArchive.isNull())
+        return;
+
     int numMods = modManager->getMods()->size();
     ErrorCode error = modManager->install(modArchive);
     showError(error);
