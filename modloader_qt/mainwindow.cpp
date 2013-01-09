@@ -30,10 +30,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setApplicationName("Jackal Mod Manager");
     QCoreApplication::setApplicationVersion("0.1.1");
 
-    // Initiate update check
-    updater = new Updater();
-    updater->checkVersion();
-
     // Load icons
     iconFolder = new QIcon(":/icons/folder.png");
     iconEnabledMod = new QIcon(":/icons/plugin.png");
@@ -43,11 +39,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Load settings
     settings = new QSettings("settings.ini", QSettings::IniFormat);
+    QString versionCheckUrl = settings->value("settings/versionCheckUrl", "http://dl.dropbox.com/u/24782509/TDL/Jackal/latest.txt").toString();
+    onlineHelpUrl = settings->value("settings/onlineHelpUrl", "https://github.com/jpeg/TDL-Mod-Loader/wiki").toString();
     bool debug = settings->value("settings/debug", false).toBool();
     QString gamePath = settings->value("game/path", "C:/Sandswept Studios/The Dead Linger Alpha/").toString();
     int gameVersion = settings->value("game/version", -1).toInt();
     bool expandEnabledMods = settings->value("mainwindow/expandEnabledMods", true).toBool();
     bool expandAllMods = settings->value("mainwindow/expandAllMods", true).toBool();
+
+    // Initiate update check
+    updater = new Updater(versionCheckUrl);
+    updater->checkVersion();
 
     errorMessageBox = new QMessageBox;
     errorMessageBox->setIcon(QMessageBox::Critical);
@@ -253,7 +255,7 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::on_actionOnline_Help_triggered()
 {
-    QDesktopServices::openUrl(QUrl("https://github.com/jpeg/TDL-Mod-Loader/wiki")); //TODO don't hardcode
+    QDesktopServices::openUrl(QUrl(onlineHelpUrl));
 }
 
 void MainWindow::on_actionAbout_triggered()

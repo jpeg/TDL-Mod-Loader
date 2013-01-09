@@ -94,6 +94,7 @@ private:
     Updater* updater;
 
     QSettings* settings;
+    QString onlineHelpUrl;
     QMessageBox* errorMessageBox;
 
     ModManager* modManager;

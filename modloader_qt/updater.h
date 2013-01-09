@@ -36,7 +36,7 @@ class Updater : public QObject
     Q_OBJECT
 
 public:
-    Updater();
+    Updater(QString& versionCheckUrl);
     virtual ~Updater();
 
 public:
@@ -48,6 +48,7 @@ private slots:
 private:
     QNetworkAccessManager* m_networkManager;
 
+    QString m_versionCheckUrl;
     bool m_downloading;
     bool m_update;
 

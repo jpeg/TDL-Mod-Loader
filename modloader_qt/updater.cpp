@@ -21,11 +21,12 @@
 
 #include "updater.h"
 
-Updater::Updater()
+Updater::Updater(QString& versionCheckUrl)
 {
     m_networkManager = new QNetworkAccessManager(this);
     connect(m_networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(networkManager_reply_finished(QNetworkReply*)));
 
+    m_versionCheckUrl = versionCheckUrl;
     m_downloading = false;
     m_update = false;
 
@@ -40,7 +41,7 @@ Updater::~Updater()
 
 void Updater::checkVersion()
 {
-    m_networkManager->get(QNetworkRequest(QUrl("http://dl.dropbox.com/u/24782509/TDL/Jackal/latest.txt"))); //TODO don't hardcode...
+    m_networkManager->get(QNetworkRequest(QUrl(m_versionCheckUrl)));
     m_downloading = true;
 }
 
