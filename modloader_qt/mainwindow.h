@@ -36,6 +36,7 @@
 #include "settings.h"
 
 #include "modmanager.h"
+#include "updater.h"
 
 namespace Ui {
 class MainWindow;
@@ -85,6 +86,8 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+
+    Updater* updater;
 
     QSettings* settings;
     QMessageBox* errorMessageBox;

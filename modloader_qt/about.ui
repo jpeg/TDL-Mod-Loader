@@ -30,7 +30,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Jackal Mod Manager</string>
+      <string>Progam Name</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignBottom|Qt::AlignHCenter</set>

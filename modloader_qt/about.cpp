@@ -28,6 +28,8 @@ About::About(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ui->labelProgramName->setText(QCoreApplication::applicationName());
+
     QString version;
     QTextStream versionStream(&version);
     versionStream << "Version: " << QCoreApplication::applicationVersion();

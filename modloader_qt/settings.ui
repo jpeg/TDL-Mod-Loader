@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>439</width>
-    <height>124</height>
+    <width>460</width>
+    <height>119</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,13 +18,13 @@
     <widget class="QLabel" name="label">
      <property name="font">
       <font>
-       <pointsize>14</pointsize>
+       <pointsize>11</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="text">
-      <string>Mod Manager Settings</string>
+      <string>General Settings</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -46,7 +46,7 @@
      <item>
       <widget class="QPushButton" name="buttonGameInstallLocationFileDialog">
        <property name="text">
-        <string>Find</string>
+        <string>Browse</string>
        </property>
       </widget>
      </item>

@@ -26,6 +26,14 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    QCoreApplication::setOrganizationName("Utudio");
+    QCoreApplication::setApplicationName("Jackal Mod Manager");
+    QCoreApplication::setApplicationVersion("0.1.1");
+
+    // Initiate update check
+    updater = new Updater();
+    updater->checkVersion();
+
     // Load icons
     iconFolder = new QIcon(":/icons/folder.png");
     iconEnabledMod = new QIcon(":/icons/plugin.png");
@@ -34,9 +42,6 @@ MainWindow::MainWindow(QWidget *parent) :
     iconRemoveMod = new QIcon(":/icons/plugin_delete.png");
 
     // Load settings
-    QCoreApplication::setOrganizationName("Utudio");
-    QCoreApplication::setApplicationName("Jackal Mod Manager");
-    QCoreApplication::setApplicationVersion("0.1.1");
     settings = new QSettings("settings.ini", QSettings::IniFormat);
     bool debug = settings->value("settings/debug", false).toBool();
     QString gamePath = settings->value("game/path", "C:/Sandswept Studios/The Dead Linger Alpha/").toString();
@@ -118,6 +123,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     ui->setupUi(this);
+    setWindowTitle(QCoreApplication::applicationName());
 
     // Set some initial GUI display
     QString version;
@@ -140,6 +146,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    delete updater;
     delete modManager;
     delete ui;
 }
