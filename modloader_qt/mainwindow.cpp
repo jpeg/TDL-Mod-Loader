@@ -46,6 +46,8 @@ MainWindow::MainWindow(QWidget *parent) :
     bool debug = settings->value("settings/debug", false).toBool();
     QString gamePath = settings->value("game/path", "C:/Sandswept Studios/The Dead Linger Alpha/").toString();
     int gameVersion = settings->value("game/version", -1).toInt();
+    bool expandEnabledMods = settings->value("mainwindow/expandEnabledMods", true).toBool();
+    bool expandAllMods = settings->value("mainwindow/expandAllMods", true).toBool();
 
     errorMessageBox = new QMessageBox;
     errorMessageBox->setIcon(QMessageBox::Critical);
@@ -138,6 +140,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->treeViewMods->setHeaderHidden(true);
     ui->treeViewMods->setModel(&modListTreeModel);
+    ui->treeViewMods->setExpanded(enabledModsItem->index(), expandEnabledMods);
+    ui->treeViewMods->setExpanded(allModsItem->index(), expandAllMods);
 
     connect(ui->statusBar, SIGNAL(messageChanged(QString)), this, SLOT(statusBar_message_changed(QString)));
     ui->statusBar->setVisible(debug);
@@ -146,8 +150,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    delete updater;
+    settings->setValue("mainwindow/expandEnabledMods", ui->treeViewMods->isExpanded(enabledModsItem->index()));
+    settings->setValue("mainwindow/expandAllMods", ui->treeViewMods->isExpanded(allModsItem->index()));
+
+    delete iconFolder;
+    delete iconEnabledMod;
+    delete iconDisabledMod;
+    delete iconAddMod;
+    delete iconRemoveMod;
+    delete allModsItem;
+    delete enabledModsItem;
+    delete errorMessageBox;
+    delete settings;
     delete modManager;
+    delete updater;
     delete ui;
 }
 
@@ -244,6 +260,11 @@ void MainWindow::on_actionAbout_triggered()
 {
     About* w = new About(this);
     w->show();
+}
+
+void MainWindow::on_actionInstall_Update_Mod_triggered()
+{
+    on_buttonInstallMod_clicked();
 }
 
 void MainWindow::on_buttonInstallMod_clicked()

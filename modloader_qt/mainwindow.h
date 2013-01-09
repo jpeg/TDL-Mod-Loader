@@ -60,9 +60,13 @@ private slots:
 
     void on_actionExit_triggered();
 
+    void on_actionSettings_triggered();
+
+    void on_actionOnline_Help_triggered();
+
     void on_actionAbout_triggered();
 
-    void on_actionSettings_triggered();
+    void on_actionInstall_Update_Mod_triggered();
 
     void on_buttonInstallMod_clicked();
 
@@ -77,8 +81,6 @@ private slots:
     void on_treeViewMods_clicked(const QModelIndex &index);
 
     void on_treeViewMods_activated(const QModelIndex &index);
-
-    void on_actionOnline_Help_triggered();
 
     void on_buttonRefreshWorld_clicked();
 
