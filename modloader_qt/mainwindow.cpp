@@ -478,6 +478,8 @@ void MainWindow::on_treeViewMods_clicked(const QModelIndex &index)
     QTextStream versionStream(&version);
     versionStream << mod->gameVersion;
     ui->labelModGameVersion->setText(version);
+    if(!mod->description.isNull())
+        ui->textBrowserModDescription->setText(mod->description);
 
     ui->buttonEnableMod->setEnabled(true);
     if(mod->enabled)
@@ -515,4 +517,9 @@ void MainWindow::on_buttonRefreshInventory_clicked()
     // Prompt user to delete inventory
     if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Inventory?", "Are you sure you want to delete the existing inventory?\n\nWARNING: This will erase ALL saved inventories.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
         modManager->refreshInventory();
+}
+
+void MainWindow::on_textBrowserModDescription_anchorClicked(const QUrl &arg1)
+{
+    QDesktopServices::openUrl(arg1);
 }

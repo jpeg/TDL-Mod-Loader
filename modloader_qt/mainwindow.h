@@ -86,6 +86,8 @@ private slots:
 
     void on_buttonRefreshInventory_clicked();
 
+    void on_textBrowserModDescription_anchorClicked(const QUrl &arg1);
+
 private:
     Ui::MainWindow *ui;
 

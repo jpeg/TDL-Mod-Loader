@@ -484,6 +484,7 @@ ErrorCode ModManager::parseModConfig(Mod* modPtr, QTextStream* modConfigIn)
     modPtr->refreshScriptCache = false;
     modPtr->refreshWorld = false;
     modPtr->refreshInventory = false;
+    modPtr->description = "";
     qDebug() << "Loading mod" << m_mods.size();
 
     while(!modConfigIn->atEnd())
@@ -549,6 +550,11 @@ ErrorCode ModManager::parseModConfig(Mod* modPtr, QTextStream* modConfigIn)
                     modPtr->version = value;
                     modVersion = true;
                     qDebug() << "Mod Version:" << modPtr->version;
+                }
+                else if(line.contains("description=", Qt::CaseInsensitive))
+                {
+                    modPtr->description = value;
+                    qDebug() << "Mod Description:" << modPtr->description;
                 }
                 else if(line.contains("plugin=", Qt::CaseInsensitive))
                 {

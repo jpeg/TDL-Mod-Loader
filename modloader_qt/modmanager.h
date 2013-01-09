@@ -119,6 +119,7 @@ public:
         QString author;
         QString version;
         int gameVersion;
+        QString description;
         QVector<QString> plugins;
         QVector<QString> resources;
         bool refreshScriptCache;
