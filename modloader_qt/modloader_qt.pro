@@ -11,6 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = modloader_qt
 TEMPLATE = app
 
+RC_FILE = application.rc
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -36,3 +37,6 @@ RESOURCES += \
     icons.qrc
 
 LIBS += quazip1.dll
+
+OTHER_FILES += \
+    application.rc
