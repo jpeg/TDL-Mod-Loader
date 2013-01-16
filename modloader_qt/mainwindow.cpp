@@ -434,6 +434,18 @@ void MainWindow::on_buttonRemoveMod_clicked()
             }
             showError(modManager->disableMod(modIndex));
             showError(modManager->save());
+            if(modManager->getMods()->at(modIndex)->refreshWorld)
+            {
+                // Prompt user to delete game world
+                if(QMessageBox::Yes == QMessageBox::warning(this, "Delete World?", "This mod required a fresh world so continuing to use it may affect gameplay. Do you want to delete the existing world?\n\nWARNING: This will erase ALL saved worlds.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+                    modManager->refreshWorld();
+            }
+            if(modManager->getMods()->at(modIndex)->refreshInventory)
+            {
+                // Prompt user to delete inventory
+                if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Inventory?", "This mod required a fresh inventory so continuing to use it may affect gameplay. Do you want to delete the existing inventory?\n\nWARNING: This will erase ALL saved inventories.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+                    modManager->refreshInventory();
+            }
         }
         allModsItem->removeRow(modIndex);
         updateStatusBar("Removed mod: " + modManager->getMods()->at(modIndex)->prettyName);
