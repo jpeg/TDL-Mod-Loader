@@ -168,7 +168,7 @@ ErrorCode ConfigModifier::save()
     for(int i=0; i<m_modList.size(); i++)
     {
         for(int j=0; j<m_modList[i]->plugins.size(); j++)
-            pluginsOut << "#Plugin=" << m_modList[i]->plugins[j] << endl;
+            pluginsOut << "Plugin=" << m_modList[i]->plugins[j] << endl;
         for(int j=0; j<m_modList[i]->resources.size(); j++)
             resourcesOut << "FileSystem=./" << MODS_DIR << m_modList[i]->name << "/data/" << m_modList[i]->resources[j] << endl;
     }

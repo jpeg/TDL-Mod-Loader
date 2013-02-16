@@ -520,31 +520,33 @@ ErrorCode ModManager::parseModXmlConfig(Mod* modPtr, QXmlStreamReader* modConfig
 
     while(!modConfigIn->atEnd() && !modConfigIn->hasError())
     {
-        switch(modConfigIn->readNext())
+        switch(modConfigIn->tokenType())
         {
         case QXmlStreamReader::StartElement:
-            if(modConfigIn->tokenString() == "mode")
+            if(modConfigIn->name().toString() == "mode")
             {
                 optionalState = Mode;
                 currentOptional = modPtr->modes.size();
                 modPtr->modes.push_back(new Mod::Optional);
                 modePrettyName.push_back(false);
+                qDebug() << "Mod Mode State";
             }
-            else if(modConfigIn->tokenString() == "option")
+            else if(modConfigIn->name().toString() == "option")
             {
                 optionalState = Option;
                 currentOptional = modPtr->options.size();
                 modPtr->options.push_back(new Mod::Optional);
                 modPtr->options.back()->optionEnabled = false;
-                modePrettyName.push_back(false);
+                optionPrettyName.push_back(false);
+                qDebug() << "Mod Option State";
             }
-            else if(modConfigIn->tokenString() == "name")
+            else if(modConfigIn->name().toString() == "name")
             {
                 modPtr->name = modConfigIn->readElementText().remove(QRegExp("\\s")); //remove whitespace from internal name
                 modName = true;
                 qDebug() << "Mod Name:" << modPtr->name;
             }
-            else if(modConfigIn->tokenString() == "pretty")
+            else if(modConfigIn->name().toString() == "pretty")
             {
                 switch(optionalState)
                 {
@@ -567,81 +569,81 @@ ErrorCode ModManager::parseModXmlConfig(Mod* modPtr, QXmlStreamReader* modConfig
                     break;
                 }
             }
-            else if(modConfigIn->tokenString() == "author")
+            else if(modConfigIn->name().toString() == "author")
             {
                 modPtr->author = modConfigIn->readElementText();
                 modAuthor = true;
                 qDebug() << "Mod Author:" << modPtr->author;
             }
-            else if(modConfigIn->tokenString() == "version")
+            else if(modConfigIn->name().toString() == "version")
             {
                 modPtr->version = modConfigIn->readElementText();
                 modVersion = true;
                 qDebug() << "Mod Version:" << modPtr->version;
             }
-            else if(modConfigIn->tokenString() == "gameVersion")
+            else if(modConfigIn->name().toString() == "gameVersion")
             {
                 modPtr->gameVersion = modConfigIn->readElementText().toInt();
                 if(modPtr->gameVersion > 0)
                     modGameVersion = true;
                 qDebug() << "Mod Game Version:" << modPtr->gameVersion;
             }
-            else if(modConfigIn->tokenString() == "description")
+            else if(modConfigIn->name().toString() == "description")
             {
                 modPtr->description = modConfigIn->readElementText();
                 qDebug() << "Mod Description:" << modPtr->description;
             }
-            else if(modConfigIn->tokenString() == "refreshScriptCache")
+            else if(modConfigIn->name().toString() == "refreshScriptCache")
             {
                 if(modConfigIn->readElementText().toLower() == "true")
                 {
                     modPtr->refreshScriptCache = true;
                     qDebug() << "Mod Refresh Script Cache: true";
                 }
-                else if(modConfigIn->readElementText().toLower() == "false")
+                else
                 {
                     modPtr->refreshScriptCache = false;
                     qDebug() << "Mod Refresh Script Cache: false";
                 }
             }
-            else if(modConfigIn->tokenString() == "refreshWorld")
+            else if(modConfigIn->name().toString() == "refreshWorld")
             {
                 if(modConfigIn->readElementText().toLower() == "true")
                 {
                     modPtr->refreshWorld = true;
                     qDebug() << "Mod Refresh World: true";
                 }
-                else if(modConfigIn->readElementText().toLower() == "false")
+                else
                 {
                     modPtr->refreshWorld = false;
                     qDebug() << "Mod Refresh World: false";
                 }
             }
-            else if(modConfigIn->tokenString() == "refreshInventory")
+            else if(modConfigIn->name().toString() == "refreshInventory")
             {
                 if(modConfigIn->readElementText().toLower() == "true")
                 {
                     modPtr->refreshInventory = true;
                     qDebug() << "Mod Refresh Inventory: true";
                 }
-                else if(modConfigIn->readElementText().toLower() == "false")
+                else
                 {
                     modPtr->refreshInventory = false;
                     qDebug() << "Mod Refresh Inventory: false";
                 }
             }
-            else if(modConfigIn->tokenString() == "defaultMode")
+            else if(modConfigIn->name().toString() == "defaultMode")
             {
                 modPtr->enabledMode = modConfigIn->readElementText().toInt();
-                qDebug() << "Mod Default Mode:" << modPtr->gameVersion;
+                qDebug() << "Mod Default Mode:" << modPtr->enabledMode;
             }
-            else if(modConfigIn->tokenString() == "plugin")
+            else if(modConfigIn->name().toString() == "plugin")
             {
+                modDoesSomething = true;
                 switch(optionalState)
                 {
                 case Common:
                     modPtr->commonPlugins.push_back(modConfigIn->readElementText());
-                    modDoesSomething = true;
                     qDebug() << "Mod Plugin:" << modPtr->commonPlugins.back();
                     break;
                 case Mode:
@@ -656,13 +658,13 @@ ErrorCode ModManager::parseModXmlConfig(Mod* modPtr, QXmlStreamReader* modConfig
                     break;
                 }
             }
-            else if(modConfigIn->tokenString() == "resource")
+            else if(modConfigIn->name().toString() == "resource")
             {
+                modDoesSomething = true;
                 switch(optionalState)
                 {
                 case Common:
                     modPtr->commonResources.push_back(modConfigIn->readElementText());
-                    modDoesSomething = true;
                     qDebug() << "Mod Resource:" << modPtr->commonResources.back();
                     break;
                 case Mode:
@@ -677,7 +679,7 @@ ErrorCode ModManager::parseModXmlConfig(Mod* modPtr, QXmlStreamReader* modConfig
                     break;
                 }
             }
-            else if(modConfigIn->tokenString() == "default")
+            else if(modConfigIn->name().toString() == "default")
             {
                 if(optionalState == Option)
                 {
@@ -686,7 +688,7 @@ ErrorCode ModManager::parseModXmlConfig(Mod* modPtr, QXmlStreamReader* modConfig
                         modPtr->options[currentOptional]->optionEnabled = true;
                         qDebug() << "Mod Option Enabled: true";
                     }
-                    else if(modConfigIn->readElementText().toLower() == "false")
+                    else
                     {
                         modPtr->options[currentOptional]->optionEnabled = false;
                         qDebug() << "Mod Option Enabled: false";
@@ -696,30 +698,38 @@ ErrorCode ModManager::parseModXmlConfig(Mod* modPtr, QXmlStreamReader* modConfig
             break;
 
         case QXmlStreamReader::EndElement:
-            if(modConfigIn->tokenString() == "mode")
+            if(modConfigIn->name().toString() == "mode")
+            {
                 optionalState = Common;
-            else if(modConfigIn->tokenString() == "option")
+                qDebug() << "Mod Common State";
+            }
+            else if(modConfigIn->name().toString() == "option")
+            {
                 optionalState = Common;
+                qDebug() << "Mod Common State";
+            }
             break;
 
         default:
             break;
         }
-        if(modConfigIn->hasError())
-        {
-            qDebug() << "XML Parse Error:" << modConfigIn->error() << modConfigIn->errorString();
-            return Error::FAILED_PARSE_MOD_CONFIG;
-        }
+
+        modConfigIn->readNext();
+    }
+    if(modConfigIn->hasError())
+    {
+        qDebug() << "XML Parse Error:" << modConfigIn->error() << modConfigIn->errorString();
+        return Error::FAILED_PARSE_MOD_CONFIG;
     }
 
     bool allOptionalPrettyNames = true;
     for(int i=0; i<modePrettyName.size(); i++)
-    {
+    {qDebug()<<modePrettyName[i];
         if(!modePrettyName[i])
             allOptionalPrettyNames = false;
     }
     for(int i=0; i<optionPrettyName.size(); i++)
-    {
+    {qDebug()<<optionPrettyName[i];
         if(!optionPrettyName[i])
             allOptionalPrettyNames = false;
     }
