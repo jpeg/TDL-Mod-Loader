@@ -86,6 +86,7 @@
 #include <QFile>
 #include <QMessageBox>
 #include <QDebug>
+#include <QXmlStreamReader>
 
 #include "quazip/quazip.h"
 #include "quazip/quazipfile.h"
@@ -101,6 +102,7 @@ public:
     virtual ~ModManager();
 
 private:
+    QString INSTALL_CONFIG_FILE;
     QString DATA_SUB_DIR;
     QString VERSION_FILE;
     QString PLUGINS_FILE;
@@ -113,6 +115,14 @@ private:
 public:
     struct Mod
     {
+        struct Optional
+        {
+            bool optionEnabled; //for options only, not modes
+            QString prettyName;
+            QVector<QString> plugins;
+            QVector<QString> resources;
+        };
+
         bool enabled;
         QString name;
         QString prettyName;
@@ -120,8 +130,12 @@ public:
         QString version;
         int gameVersion;
         QString description;
-        QVector<QString> plugins;
-        QVector<QString> resources;
+        QVector<QString> commonPlugins;
+        QVector<QString> commonResources;
+        unsigned int enabledMode;
+        QVector<Optional*> modes;
+        QVector<bool> enabledOptions;
+        QVector<Optional*> options;
         bool refreshScriptCache;
         bool refreshWorld;
         bool refreshInventory;
@@ -159,8 +173,9 @@ public:
     ErrorCode refreshInventory();
 
 private:
-    ErrorCode parseModConfig(Mod *modPtr, QTextStream *modConfigIn);
+    ErrorCode parseModXmlConfig(Mod *modPtr, QXmlStreamReader *modConfigIn);
     int installPlugin(int modIndex, const QString& modName, const QString& plugin);
+    void addModGameConfig(int enabledMod, Mod* modPtr);
     bool deleteDir(const QString& path);
     ErrorCode createArchiveDirectoryStructure(QuaZipDir* currentDir, QDir* destinationDir);
 };

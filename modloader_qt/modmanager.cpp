@@ -41,6 +41,8 @@ ModManager::ModManager(const QString& gameDirectory, const QString& dataDirector
     }
 #endif
 
+    INSTALL_CONFIG_FILE = "install.xml";
+
     VERSION_FILE = DATA_SUB_DIR + "tdlversion.txt";
     PLUGINS_FILE = "Plugins.cfg";
     RESOURCES_FILE = "content/resources.cfg";
@@ -126,15 +128,15 @@ ErrorCode ModManager::install(const QString& modArchivePath)
         if(!zip.open(QuaZip::mdUnzip))
             return Error::FAILED_OPEN_MOD_ARCHIVE;
 
-        // Read mod name from install.cfg in ZIP file
+        // Read mod name from install.xml in ZIP file
         QuaZipFile configFile(&zip);
-        zip.setCurrentFile("install.cfg", QuaZip::csInsensitive);
+        zip.setCurrentFile(INSTALL_CONFIG_FILE, QuaZip::csInsensitive);
         Mod* newMod = new Mod;
         ErrorCode error = Error::INVALID_MOD_ARCHIVE_CONFIG;
         if(configFile.open(QIODevice::ReadOnly) && configFile.getZipError() == UNZ_OK)
         {
-            QTextStream configIn(&configFile);
-            error = parseModConfig(newMod, &configIn);
+            QXmlStreamReader configIn(&configFile);
+            error = parseModXmlConfig(newMod, &configIn);
         }
         configFile.close();
         if(error != Error::NO_ERROR)
@@ -261,16 +263,16 @@ ErrorCode ModManager::load()
         for(unsigned int i=0; i<modsDir.count(); i++)
         {
             QString modDirPath = modsDir.entryList().at(i);
-            QDir modDir(modsDir.absolutePath() + QChar('/') + modDirPath, "install.cfg", QDir::SortFlags(QDir::IgnoreCase), QDir::Filters(QDir::AllEntries));
+            QDir modDir(modsDir.absolutePath() + QChar('/') + modDirPath, INSTALL_CONFIG_FILE, QDir::SortFlags(QDir::IgnoreCase), QDir::Filters(QDir::AllEntries));
             if(modDir.count() == 1)
             {
                 // Read mod info from config file
                 QFile modConfigFile(modDir.absolutePath() + QChar('/') + modDir[0]);
                 if(!modConfigFile.open(QIODevice::ReadOnly | QIODevice::Text))
                     return Error::FAILED_OPEN_MOD_CONFIG_FILE;
-                QTextStream modConfigIn(&modConfigFile);
+                QXmlStreamReader modConfigIn(&modConfigFile);
                 Mod* mod = new Mod;
-                if(parseModConfig(mod, &modConfigIn) == Error::NO_ERROR)
+                if(parseModXmlConfig(mod, &modConfigIn) == Error::NO_ERROR)
                 {
                     qDebug() << "Added mod" << m_mods.size() << mod->name;
                     mod->icon.load(modDir.absolutePath() + QChar('/') + "icon.png", "PNG");
@@ -300,10 +302,8 @@ ErrorCode ModManager::load()
                 m_mods[j]->enabled = true;
                 if(!m_enabledModOrder.contains(m_mods[j]))
                     m_enabledModOrder.push_back(m_mods[j]);
-                for(int k=0; k<m_mods[j]->plugins.size(); k++)
-                    installPlugin(i, m_mods[j]->name, m_mods[j]->plugins[k]);
-                for(int k=0; k<m_mods[j]->resources.size(); k++)
-                    m_gameConfig->addResource(i, m_mods[j]->name, m_mods[j]->resources[k]);
+                //TODO figure out enabled modes and options
+                addModGameConfig(i, m_mods[j]);
                 activeModFound = true;
                 break;
             }
@@ -345,10 +345,8 @@ ErrorCode ModManager::enableMod(int mod)
         {
             if(!m_enabledModOrder.contains(m_mods[mod]))
             {
-                for(int i=0; i<m_mods[mod]->plugins.size(); i++)
-                    installPlugin(m_enabledModOrder.size(), m_mods[mod]->name, m_mods[mod]->plugins[i]);
-                for(int i=0; i<m_mods[mod]->resources.size(); i++)
-                    m_gameConfig->addResource(m_enabledModOrder.size(), m_mods[mod]->name, m_mods[mod]->resources[i]);
+                addModGameConfig(m_enabledModOrder.size(), m_mods[mod]);
+
                 m_enabledModOrder.push_back(m_mods[mod]);
                 m_mods[mod]->enabled = true;
 
@@ -384,10 +382,29 @@ ErrorCode ModManager::disableMod(int mod)
                     m_gameConfig->remove(i);
                     m_enabledModOrder.remove(i);
                     m_mods[mod]->enabled = false;
-                    for(int j=0; j<m_mods[mod]->plugins.size(); j++)
+                    for(int j=0; j<m_mods[mod]->commonPlugins.size(); j++)
                     {
-                        if(!DISALLOWED_PLUGIN_FILENAMES.contains(m_mods[mod]->plugins[j]))
-                            QFile::remove(m_gameDir + m_mods[mod]->plugins[j] + ".dll");
+                        if(!DISALLOWED_PLUGIN_FILENAMES.contains(m_mods[mod]->commonPlugins[j]))
+                            QFile::remove(m_gameDir + m_mods[mod]->commonPlugins[j] + ".dll");
+                    }
+                    if(m_mods[mod]->enabledMode < (unsigned int)m_mods[mod]->modes.size())
+                    {
+                        for(int j=0; j<m_mods[mod]->modes[m_mods[mod]->enabledMode]->plugins.size(); j++)
+                        {
+                            if(!DISALLOWED_PLUGIN_FILENAMES.contains(m_mods[mod]->modes[m_mods[mod]->enabledMode]->plugins[j]))
+                                QFile::remove(m_gameDir + m_mods[mod]->modes[m_mods[mod]->enabledMode]->plugins[j] + ".dll");
+                        }
+                    }
+                    for(int k=0; k<m_mods[mod]->options.size(); k++)
+                    {
+                        if(m_mods[mod]->options[k]->optionEnabled)
+                        {
+                            for(int j=0; j<m_mods[mod]->options[k]->plugins.size(); j++)
+                            {
+                                if(!DISALLOWED_PLUGIN_FILENAMES.contains(m_mods[mod]->options[k]->plugins[j]))
+                                    QFile::remove(m_gameDir + m_mods[mod]->options[k]->plugins[j] + ".dll");
+                            }
+                        }
                     }
                     if(m_mods[mod]->refreshScriptCache)
                     {
@@ -477,7 +494,7 @@ ErrorCode ModManager::refreshInventory()
     return Error::NO_ERROR;
 }
 
-ErrorCode ModManager::parseModConfig(Mod* modPtr, QTextStream* modConfigIn)
+ErrorCode ModManager::parseModXmlConfig(Mod* modPtr, QXmlStreamReader* modConfigIn)
 {
     bool modName = false, modPrettyName = false, modAuthor = false, modVersion = false, modGameVersion = false, modDoesSomething = false;
     modPtr->enabled = false;
@@ -485,112 +502,229 @@ ErrorCode ModManager::parseModConfig(Mod* modPtr, QTextStream* modConfigIn)
     modPtr->refreshWorld = false;
     modPtr->refreshInventory = false;
     modPtr->description = "";
+    modPtr->enabledMode = 0;
+    for(int i=0; i<modPtr->modes.size(); i++)
+        delete modPtr->modes[i];
+    modPtr->modes.clear();
+    QVector<bool> modePrettyName;
+    modPtr->enabledOptions.clear();
+    for(int i=0; i<modPtr->options.size(); i++)
+        delete modPtr->options[i];
+    modPtr->options.clear();
+    QVector<bool> optionPrettyName;
     qDebug() << "Loading mod" << m_mods.size();
 
-    while(!modConfigIn->atEnd())
-    {
-        QString line = modConfigIn->readLine();
+    enum OptionalState { Common, Mode, Option };
+    OptionalState optionalState = Common;
+    unsigned int currentOptional = -1; //-1 to eliminate warning
 
-        // Ignore comments
-        if(line.contains("#"))
+    while(!modConfigIn->atEnd() && !modConfigIn->hasError())
+    {
+        switch(modConfigIn->readNext())
         {
-            for(int j=0; j<line.length(); j++)
+        case QXmlStreamReader::StartElement:
+            if(modConfigIn->tokenString() == "mode")
             {
-                if(line[j] == QChar('#'))
+                optionalState = Mode;
+                currentOptional = modPtr->modes.size();
+                modPtr->modes.push_back(new Mod::Optional);
+                modePrettyName.push_back(false);
+            }
+            else if(modConfigIn->tokenString() == "option")
+            {
+                optionalState = Option;
+                currentOptional = modPtr->options.size();
+                modPtr->options.push_back(new Mod::Optional);
+                modPtr->options.back()->optionEnabled = false;
+                modePrettyName.push_back(false);
+            }
+            else if(modConfigIn->tokenString() == "name")
+            {
+                modPtr->name = modConfigIn->readElementText().remove(QRegExp("\\s")); //remove whitespace from internal name
+                modName = true;
+                qDebug() << "Mod Name:" << modPtr->name;
+            }
+            else if(modConfigIn->tokenString() == "pretty")
+            {
+                switch(optionalState)
                 {
-                    line.truncate(j);
+                case Common:
+                    modPtr->prettyName = modConfigIn->readElementText();
+                    modPrettyName = true;
+                    qDebug() << "Mod Pretty Name:" << modPtr->prettyName;
+                    break;
+                case Mode:
+                    modPtr->modes[currentOptional]->prettyName = modConfigIn->readElementText();
+                    modePrettyName[currentOptional] = true;
+                    qDebug() << "Mod Mode Pretty Name:" << modPtr->modes[currentOptional]->prettyName;
+                    break;
+                case Option:
+                    modPtr->options[currentOptional]->prettyName = modConfigIn->readElementText();
+                    optionPrettyName[currentOptional] = true;
+                    qDebug() << "Mod Option Pretty Name:" << modPtr->options[currentOptional]->prettyName;
+                    break;
+                default:
                     break;
                 }
             }
-        }
-
-        if(line.contains("="))
-        {
-            // Find value after '=' in config
-            int index = 1;
-            while(line[index-1] != QChar('='))
-                index++;
-            if(index >= line.length())
-                continue;
-            QString value = "";
-            for(int j=index; j<line.length(); j++)
-                value.append(line[j]);
-
-            // Store config values
-            if(!value.isEmpty() && value != "")
+            else if(modConfigIn->tokenString() == "author")
             {
-                if(line.contains("prettyName=", Qt::CaseInsensitive))
-                {
-                    modPtr->prettyName = value;
-                    modPrettyName = true;
-                    qDebug() << "Mod Pretty Name:" << modPtr->prettyName;
-                }
-                else if(line.contains("name=", Qt::CaseInsensitive))
-                {
-                    modPtr->name = value.remove(QRegExp("\\s")); //remove whitespace from internal name
-                    modName = true;
-                    qDebug() << "Mod Name:" << modPtr->name;
-                }
-                else if(line.contains("author=", Qt::CaseInsensitive))
-                {
-                    modPtr->author = value;
-                    modAuthor = true;
-                    qDebug() << "Mod Author:" << modPtr->author;
-                }
-                else if(line.contains("gameVersion=", Qt::CaseInsensitive))
-                {
-                    QTextStream convert(&value, QIODevice::ReadOnly);
-                    convert >> modPtr->gameVersion;
-                    if(modPtr->gameVersion > 0)
-                        modGameVersion = true;
-                    qDebug() << "Mod Game Version:" << modPtr->gameVersion;
-                }
-                else if(line.contains("version=", Qt::CaseInsensitive))
-                {
-                    modPtr->version = value;
-                    modVersion = true;
-                    qDebug() << "Mod Version:" << modPtr->version;
-                }
-                else if(line.contains("description=", Qt::CaseInsensitive))
-                {
-                    modPtr->description = value;
-                    qDebug() << "Mod Description:" << modPtr->description;
-                }
-                else if(line.contains("plugin=", Qt::CaseInsensitive))
-                {
-                    modPtr->plugins.push_back(value);
-                    modDoesSomething = true;
-                    qDebug() << "Mod Plugin:" << modPtr->plugins.back();
-                }
-                else if(line.contains("resource=", Qt::CaseInsensitive))
-                {
-                    modPtr->resources.push_back(value);
-                    modDoesSomething = true;
-                    qDebug() << "Mod Resource:" << modPtr->resources.back();
-                }
-                else if(line.contains("refreshScriptCache=true", Qt::CaseInsensitive))
+                modPtr->author = modConfigIn->readElementText();
+                modAuthor = true;
+                qDebug() << "Mod Author:" << modPtr->author;
+            }
+            else if(modConfigIn->tokenString() == "version")
+            {
+                modPtr->version = modConfigIn->readElementText();
+                modVersion = true;
+                qDebug() << "Mod Version:" << modPtr->version;
+            }
+            else if(modConfigIn->tokenString() == "gameVersion")
+            {
+                modPtr->gameVersion = modConfigIn->readElementText().toInt();
+                if(modPtr->gameVersion > 0)
+                    modGameVersion = true;
+                qDebug() << "Mod Game Version:" << modPtr->gameVersion;
+            }
+            else if(modConfigIn->tokenString() == "description")
+            {
+                modPtr->description = modConfigIn->readElementText();
+                qDebug() << "Mod Description:" << modPtr->description;
+            }
+            else if(modConfigIn->tokenString() == "refreshScriptCache")
+            {
+                if(modConfigIn->readElementText().toLower() == "true")
                 {
                     modPtr->refreshScriptCache = true;
                     qDebug() << "Mod Refresh Script Cache: true";
                 }
-                else if(line.contains("refreshWorld=true", Qt::CaseInsensitive))
+                else if(modConfigIn->readElementText().toLower() == "false")
+                {
+                    modPtr->refreshScriptCache = false;
+                    qDebug() << "Mod Refresh Script Cache: false";
+                }
+            }
+            else if(modConfigIn->tokenString() == "refreshWorld")
+            {
+                if(modConfigIn->readElementText().toLower() == "true")
                 {
                     modPtr->refreshWorld = true;
                     qDebug() << "Mod Refresh World: true";
                 }
-                else if(line.contains("refreshInventory=true", Qt::CaseInsensitive))
+                else if(modConfigIn->readElementText().toLower() == "false")
+                {
+                    modPtr->refreshWorld = false;
+                    qDebug() << "Mod Refresh World: false";
+                }
+            }
+            else if(modConfigIn->tokenString() == "refreshInventory")
+            {
+                if(modConfigIn->readElementText().toLower() == "true")
                 {
                     modPtr->refreshInventory = true;
                     qDebug() << "Mod Refresh Inventory: true";
                 }
+                else if(modConfigIn->readElementText().toLower() == "false")
+                {
+                    modPtr->refreshInventory = false;
+                    qDebug() << "Mod Refresh Inventory: false";
+                }
             }
+            else if(modConfigIn->tokenString() == "defaultMode")
+            {
+                modPtr->enabledMode = modConfigIn->readElementText().toInt();
+                qDebug() << "Mod Default Mode:" << modPtr->gameVersion;
+            }
+            else if(modConfigIn->tokenString() == "plugin")
+            {
+                switch(optionalState)
+                {
+                case Common:
+                    modPtr->commonPlugins.push_back(modConfigIn->readElementText());
+                    modDoesSomething = true;
+                    qDebug() << "Mod Plugin:" << modPtr->commonPlugins.back();
+                    break;
+                case Mode:
+                    modPtr->modes[currentOptional]->plugins.push_back(modConfigIn->readElementText());
+                    qDebug() << "Mod Mode Plugin:" << modPtr->modes[currentOptional]->plugins.back();
+                    break;
+                case Option:
+                    modPtr->options[currentOptional]->resources.push_back(modConfigIn->readElementText());
+                    qDebug() << "Mod Option Plugin:" << modPtr->options[currentOptional]->resources.back();
+                    break;
+                default:
+                    break;
+                }
+            }
+            else if(modConfigIn->tokenString() == "resource")
+            {
+                switch(optionalState)
+                {
+                case Common:
+                    modPtr->commonResources.push_back(modConfigIn->readElementText());
+                    modDoesSomething = true;
+                    qDebug() << "Mod Resource:" << modPtr->commonResources.back();
+                    break;
+                case Mode:
+                    modPtr->modes[currentOptional]->resources.push_back(modConfigIn->readElementText());
+                    qDebug() << "Mod Mode Resource:" << modPtr->modes[currentOptional]->resources.back();
+                    break;
+                case Option:
+                    modPtr->options[currentOptional]->resources.push_back(modConfigIn->readElementText());
+                    qDebug() << "Mod Option Resource:" << modPtr->options[currentOptional]->resources.back();
+                    break;
+                default:
+                    break;
+                }
+            }
+            else if(modConfigIn->tokenString() == "default")
+            {
+                if(optionalState == Option)
+                {
+                    if(modConfigIn->readElementText().toLower() == "true")
+                    {
+                        modPtr->options[currentOptional]->optionEnabled = true;
+                        qDebug() << "Mod Option Enabled: true";
+                    }
+                    else if(modConfigIn->readElementText().toLower() == "false")
+                    {
+                        modPtr->options[currentOptional]->optionEnabled = false;
+                        qDebug() << "Mod Option Enabled: false";
+                    }
+                }
+            }
+            break;
+
+        case QXmlStreamReader::EndElement:
+            if(modConfigIn->tokenString() == "mode")
+                optionalState = Common;
+            else if(modConfigIn->tokenString() == "option")
+                optionalState = Common;
+            break;
+
+        default:
+            break;
+        }
+        if(modConfigIn->hasError())
+        {
+            qDebug() << "XML Parse Error:" << modConfigIn->error() << modConfigIn->errorString();
+            return Error::FAILED_PARSE_MOD_CONFIG;
         }
     }
 
-    if(modName && modPrettyName && modAuthor && modVersion && modGameVersion && modDoesSomething)
+    bool allOptionalPrettyNames = true;
+    for(int i=0; i<modePrettyName.size(); i++)
     {
-        return Error::NO_ERROR;
+        if(!modePrettyName[i])
+            allOptionalPrettyNames = false;
     }
+    for(int i=0; i<optionPrettyName.size(); i++)
+    {
+        if(!optionPrettyName[i])
+            allOptionalPrettyNames = false;
+    }
+    if(modName && modPrettyName && modAuthor && modVersion && modGameVersion && modDoesSomething && allOptionalPrettyNames)
+        return Error::NO_ERROR;
     return Error::FAILED_PARSE_MOD_CONFIG;
 }
 
@@ -607,6 +741,31 @@ int ModManager::installPlugin(int modIndex, const QString& modName, const QStrin
     }
 
     return -1;
+}
+
+void ModManager::addModGameConfig(int enabledMod, Mod* modPtr)
+{
+    for(int i=0; i<modPtr->commonPlugins.size(); i++)
+        installPlugin(enabledMod, modPtr->name, modPtr->commonPlugins[i]);
+    for(int i=0; i<modPtr->commonResources.size(); i++)
+        m_gameConfig->addResource(enabledMod, modPtr->name, modPtr->commonResources[i]);
+    if(modPtr->enabledMode < (unsigned int)modPtr->modes.size())
+    {
+        for(int i=0; i<modPtr->modes[modPtr->enabledMode]->plugins.size(); i++)
+            installPlugin(enabledMod, modPtr->name, modPtr->modes[modPtr->enabledMode]->plugins[i]);
+        for(int i=0; i<modPtr->modes[modPtr->enabledMode]->resources.size(); i++)
+            m_gameConfig->addResource(enabledMod, modPtr->name, modPtr->modes[modPtr->enabledMode]->resources[i]);
+    }
+    for(int j=0; j<modPtr->options.size(); j++)
+    {
+        if(modPtr->options[j]->optionEnabled)
+        {
+            for(int i=0; i<modPtr->options[j]->plugins.size(); i++)
+                installPlugin(enabledMod, modPtr->name, modPtr->options[j]->plugins[i]);
+            for(int i=0; i<modPtr->options[j]->resources.size(); i++)
+                m_gameConfig->addResource(enabledMod, modPtr->name, modPtr->options[j]->resources[i]);
+        }
+    }
 }
 
 bool ModManager::deleteDir(const QString& path)
