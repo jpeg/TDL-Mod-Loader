@@ -134,7 +134,6 @@ public:
         QVector<QString> commonResources;
         unsigned int enabledMode;
         QVector<Optional*> modes;
-        QVector<bool> enabledOptions;
         QVector<Optional*> options;
         bool refreshScriptCache;
         bool refreshWorld;

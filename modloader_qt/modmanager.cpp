@@ -507,7 +507,6 @@ ErrorCode ModManager::parseModXmlConfig(Mod* modPtr, QXmlStreamReader* modConfig
         delete modPtr->modes[i];
     modPtr->modes.clear();
     QVector<bool> modePrettyName;
-    modPtr->enabledOptions.clear();
     for(int i=0; i<modPtr->options.size(); i++)
         delete modPtr->options[i];
     modPtr->options.clear();
@@ -724,12 +723,12 @@ ErrorCode ModManager::parseModXmlConfig(Mod* modPtr, QXmlStreamReader* modConfig
 
     bool allOptionalPrettyNames = true;
     for(int i=0; i<modePrettyName.size(); i++)
-    {qDebug()<<modePrettyName[i];
+    {
         if(!modePrettyName[i])
             allOptionalPrettyNames = false;
     }
     for(int i=0; i<optionPrettyName.size(); i++)
-    {qDebug()<<optionPrettyName[i];
+    {
         if(!optionPrettyName[i])
             allOptionalPrettyNames = false;
     }

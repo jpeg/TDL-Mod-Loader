@@ -34,6 +34,7 @@
 
 #include "about.h"
 #include "settings.h"
+#include "customization.h"
 
 #include "modmanager.h"
 #include "updater.h"

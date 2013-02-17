@@ -333,28 +333,40 @@ void MainWindow::on_buttonEnableMod_clicked()
         else
         {
             // Enable mod
-            QStandardItem* modItem = new QStandardItem(*iconEnabledMod, modManager->getMods()->at(modIndex)->prettyName);
-            modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
-            enabledModsItem->appendRow(modItem);
-            allModsItem->child(modIndex)->setIcon(*iconEnabledMod);
-            ui->buttonEnableMod->setText("Disable");
-            ui->buttonEnableMod->setIcon(*iconRemoveMod);
-            showError(modManager->enableMod(modIndex));
-            if(modManager->getMods()->at(modIndex)->refreshWorld)
-            {
-                // Prompt user to delete game world
-                if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Worlds?", "This mod requires a fresh world, delete existing world?\n\nWARNING: This will erase ALL saved worlds.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
-                    modManager->refreshWorld();
-            }
-            if(modManager->getMods()->at(modIndex)->refreshInventory)
-            {
-                // Prompt user to delete inventory
-                if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Inventory?", "This mod requires a fresh inventory, delete existing inventory?\n\nWARNING: This will erase ALL saved inventories.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
-                    modManager->refreshInventory();
-            }
-            showError(modManager->save());
+            int result = QDialog::Accepted;
 
-            updateStatusBar("Enabled mod: " + modManager->getMods()->at(modIndex)->prettyName);
+            //Customization
+            if(modManager->getMods()->at(modIndex)->modes.size() > 0 || modManager->getMods()->at(modIndex)->options.size() > 0)
+            {
+                Customization* w = new Customization(this, modManager->getMods()->at(modIndex));
+                result = w->exec();
+            }
+
+            if(result == QDialog::Accepted)
+            {
+                QStandardItem* modItem = new QStandardItem(*iconEnabledMod, modManager->getMods()->at(modIndex)->prettyName);
+                modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
+                enabledModsItem->appendRow(modItem);
+                allModsItem->child(modIndex)->setIcon(*iconEnabledMod);
+                ui->buttonEnableMod->setText("Disable");
+                ui->buttonEnableMod->setIcon(*iconRemoveMod);
+                showError(modManager->enableMod(modIndex));
+                if(modManager->getMods()->at(modIndex)->refreshWorld)
+                {
+                    // Prompt user to delete game world
+                    if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Worlds?", "This mod requires a fresh world, delete existing world?\n\nWARNING: This will erase ALL saved worlds.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+                        modManager->refreshWorld();
+                }
+                if(modManager->getMods()->at(modIndex)->refreshInventory)
+                {
+                    // Prompt user to delete inventory
+                    if(QMessageBox::Yes == QMessageBox::warning(this, "Delete Inventory?", "This mod requires a fresh inventory, delete existing inventory?\n\nWARNING: This will erase ALL saved inventories.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+                        modManager->refreshInventory();
+                }
+                showError(modManager->save());
+
+                updateStatusBar("Enabled mod: " + modManager->getMods()->at(modIndex)->prettyName);
+            }
         }
     }
 }

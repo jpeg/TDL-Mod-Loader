@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     modmanager.cpp \
     about.cpp \
     settings.cpp \
-    updater.cpp
+    updater.cpp \
+    customization.cpp
 
 HEADERS  += mainwindow.h \
     configmodifier.h \
@@ -27,11 +28,13 @@ HEADERS  += mainwindow.h \
     modmanager.h \
     about.h \
     settings.h \
-    updater.h
+    updater.h \
+    customization.h
 
 FORMS    += mainwindow.ui \
     about.ui \
-    settings.ui
+    settings.ui \
+    customization.ui
 
 RESOURCES += \
     icons.qrc
