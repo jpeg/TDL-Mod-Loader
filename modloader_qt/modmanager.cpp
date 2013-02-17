@@ -41,7 +41,7 @@ ModManager::ModManager(const QString& gameDirectory, const QString& dataDirector
     }
 #endif
 
-    INSTALL_CONFIG_FILE = "install.xml";
+    INSTALL_CONFIG_FILE = "jackal.xml";
 
     VERSION_FILE = DATA_SUB_DIR + "tdlversion.txt";
     PLUGINS_FILE = "Plugins.cfg";
