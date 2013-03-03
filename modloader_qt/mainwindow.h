@@ -38,6 +38,7 @@
 #include "serverconfig.h"
 
 #include "modmanager.h"
+#include "servermanager.h"
 #include "updater.h"
 
 namespace Ui {
@@ -107,6 +108,8 @@ private:
     QStandardItemModel modListTreeModel;
     QStandardItem* enabledModsItem;
     QStandardItem* allModsItem;
+
+    ServerManager* serverManager;
 
     // Icons
     QIcon* iconFolder;

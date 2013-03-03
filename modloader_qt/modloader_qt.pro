@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     settings.cpp \
     updater.cpp \
     customization.cpp \
-    serverconfig.cpp
+    serverconfig.cpp \
+    servermanager.cpp
 
 HEADERS  += mainwindow.h \
     configmodifier.h \
@@ -31,7 +32,8 @@ HEADERS  += mainwindow.h \
     settings.h \
     updater.h \
     customization.h \
-    serverconfig.h
+    serverconfig.h \
+    servermanager.h
 
 FORMS    += mainwindow.ui \
     about.ui \

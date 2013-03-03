@@ -102,6 +102,9 @@ MainWindow::MainWindow(QWidget *parent) :
     if(gameVersion != modManager->getVersion())
         settings->setValue("game/version", modManager->getVersion()); //may need to do something special for updates?
 
+    // Intialize Server Manager
+    serverManager = new ServerManager(settings);
+
     // Set up tree view model for mod list
     QStandardItem* root = modListTreeModel.invisibleRootItem();
     enabledModsItem = new QStandardItem(*iconFolder, "Enabled Mods");
@@ -164,6 +167,7 @@ MainWindow::~MainWindow()
     delete enabledModsItem;
     delete errorMessageBox;
     delete settings;
+    delete serverManager;
     delete modManager;
     delete updater;
     delete ui;
@@ -255,13 +259,12 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::on_actionStartDedicatedServer_triggered()
 {
-    //TODO start server
-    //"TDLServerMain.exe" --dedicated --maxplayers=8 --gamemode=public --servername="Jackal Mod Manager Server" --adminpass="password" --contentconfig="joesContentConfig.xml"
+    serverManager->launch();
 }
 
 void MainWindow::on_actionConfigureServer_triggered()
 {
-    ServerConfig* w = new ServerConfig(this, settings);
+    ServerConfig* w = new ServerConfig(this, serverManager);
     w->show();
 }
 

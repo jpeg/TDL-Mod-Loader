@@ -1,7 +1,7 @@
 #include "serverconfig.h"
 #include "ui_serverconfig.h"
 
-ServerConfig::ServerConfig(QWidget *parent, QSettings* settings) :
+ServerConfig::ServerConfig(QWidget *parent, ServerManager* serverManager) :
     QDialog(parent),
     ui(new Ui::ServerConfig)
 {
@@ -12,7 +12,7 @@ ServerConfig::ServerConfig(QWidget *parent, QSettings* settings) :
     this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
     this->setFixedSize(this->width(), this->height());
 
-    m_settings = settings;
+    m_serverManager = serverManager;
     //TODO init config ui
 }
 
