@@ -16,5 +16,6 @@
         <file>icons/plugin_disabled.png</file>
         <file>icons/cart_delete.png</file>
         <file>icons/world_delete.png</file>
+        <file>icons/application_xp_terminal.png</file>
     </qresource>
 </RCC>

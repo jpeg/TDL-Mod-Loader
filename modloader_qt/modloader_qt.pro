@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     about.cpp \
     settings.cpp \
     updater.cpp \
-    customization.cpp
+    customization.cpp \
+    serverconfig.cpp
 
 HEADERS  += mainwindow.h \
     configmodifier.h \
@@ -29,12 +30,14 @@ HEADERS  += mainwindow.h \
     about.h \
     settings.h \
     updater.h \
-    customization.h
+    customization.h \
+    serverconfig.h
 
 FORMS    += mainwindow.ui \
     about.ui \
     settings.ui \
-    customization.ui
+    customization.ui \
+    serverconfig.ui
 
 RESOURCES += \
     icons.qrc

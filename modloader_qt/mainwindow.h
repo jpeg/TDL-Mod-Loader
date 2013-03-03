@@ -35,6 +35,7 @@
 #include "about.h"
 #include "settings.h"
 #include "customization.h"
+#include "serverconfig.h"
 
 #include "modmanager.h"
 #include "updater.h"
@@ -62,6 +63,10 @@ private slots:
     void on_actionExit_triggered();
 
     void on_actionSettings_triggered();
+
+    void on_actionStartDedicatedServer_triggered();
+
+    void on_actionConfigureServer_triggered();
 
     void on_actionOnline_Help_triggered();
 

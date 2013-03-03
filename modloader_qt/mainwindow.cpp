@@ -253,6 +253,18 @@ void MainWindow::on_actionExit_triggered()
     this->close();
 }
 
+void MainWindow::on_actionStartDedicatedServer_triggered()
+{
+    //TODO start server
+    //"TDLServerMain.exe" --dedicated --maxplayers=8 --gamemode=public --servername="Jackal Mod Manager Server" --adminpass="password" --contentconfig="joesContentConfig.xml"
+}
+
+void MainWindow::on_actionConfigureServer_triggered()
+{
+    ServerConfig* w = new ServerConfig(this, settings);
+    w->show();
+}
+
 void MainWindow::on_actionOnline_Help_triggered()
 {
     QDesktopServices::openUrl(QUrl(onlineHelpUrl));
