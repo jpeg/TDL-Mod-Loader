@@ -43,7 +43,7 @@ ServerManager::~ServerManager()
 
 void ServerManager::launch()
 {
-    QString exe = "start \"tst\" /D \"C:\\Sandswept Studios\\The Dead Linger Alpha\" TDLServerMain.exe --dedicated";
+    QString exe = "start";
     QString maxPlayers;
     QTextStream maxPlayersStream(&maxPlayers);
     QString gamePath = m_settings->value("game/path").toString();
@@ -53,19 +53,24 @@ void ServerManager::launch()
             gamePath[i] = QChar('\\');
     }
     maxPlayersStream << m_maxPlayers;
+
+    // Argument list
     QStringList args;
-    args << "\"TDL Dedicated Server\""
-         << "/D\"" + gamePath + "\""
+    args << "TDL Dedicated Server"
+         << "/D"
+         << gamePath
          << "TDLServerMain.exe"
          << "--dedicated"
-         << "--servername=\"" + m_serverName + "\""
+         << "--servername=" + m_serverName
          << "--maxplayers=" + maxPlayers
          << (m_gamemodePublic ? "--gamemode=public" : "--gamemode=protected")
-         << "--adminpass=\"" + m_adminPassword + "\"";
+         << "--adminpass=" + m_adminPassword;
     if(!m_password.isEmpty() && !m_password.isNull())
-        args << "--password=\"" + m_password + "\"";
+        args << "--password=" + m_password;
     if(m_customContentConfig)
         args << "--contentconfig=" + CUSTOM_CONTENT_CONFIG_FILE;
-    m_serverProcess->start(exe);//, args);
+
+    // Start server executable
+    m_serverProcess->start(exe, args);
     qDebug() << "Starting dedicated server:" << exe << args;
 }

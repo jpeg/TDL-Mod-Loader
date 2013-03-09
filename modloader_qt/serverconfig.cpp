@@ -24,7 +24,6 @@ ServerConfig::ServerConfig(QWidget *parent, ServerManager* serverManager) :
 
 ServerConfig::~ServerConfig()
 {
-    delete ui;
 }
 
 void ServerConfig::on_buttonBox_clicked(QAbstractButton *button)
