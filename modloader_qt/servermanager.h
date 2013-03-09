@@ -24,14 +24,32 @@
 
 #include <QSettings>
 #include <QProcess>
+#include <QTextStream>
+#include <QDebug>
 
 class ServerManager
 {
+private:
+    QString CUSTOM_CONTENT_CONFIG_FILE;
+
 public:
     ServerManager(QSettings* settings);
     virtual ~ServerManager();
 
     void launch();
+
+    QString getServerName() { return m_serverName; }
+    void setServerName(QString serverName) { m_serverName = serverName; m_settings->setValue("server/serverName", m_serverName); }
+    int getMaxPlayers() { return m_maxPlayers; }
+    void setMaxPlayers(int maxPlayers) { m_maxPlayers = maxPlayers; m_settings->setValue("server/maxPlayers", m_maxPlayers); }
+    bool getGamemodePublic() { return m_gamemodePublic; }
+    void setGamemodePublic(bool gamemodePublic) { m_gamemodePublic = gamemodePublic; m_settings->setValue("server/gamemodePublic", m_gamemodePublic); }
+    QString getPassword() { return m_password; }
+    void setPassword(QString password) { m_password = password; m_settings->setValue("server/password", m_password); }
+    QString getAdminPassword() { return m_adminPassword; }
+    void setAdminPassword(QString adminPassword) { m_adminPassword = adminPassword; m_settings->setValue("server/adminPassword", m_adminPassword); }
+    bool getCustomContentConfig() { return m_customContentConfig; }
+    void setCustomContentConfig(bool customContentConfig) {m_customContentConfig = customContentConfig; m_settings->setValue("server/customContentConfig", m_customContentConfig); }
 
 private:
     QSettings* m_settings;
@@ -39,10 +57,11 @@ private:
     QString m_serverName;
     int m_maxPlayers;
     bool m_gamemodePublic;
-    bool m_usePassword;
     QString m_password;
     QString m_adminPassword;
     bool m_customContentConfig;
+
+    QProcess* m_serverProcess;
 };
 
 #endif // SERVERMANAGER_H

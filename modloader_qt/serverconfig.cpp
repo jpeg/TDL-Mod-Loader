@@ -13,7 +13,13 @@ ServerConfig::ServerConfig(QWidget *parent, ServerManager* serverManager) :
     this->setFixedSize(this->width(), this->height());
 
     m_serverManager = serverManager;
-    //TODO init config ui
+
+    ui->serverNameLineEdit->setText(m_serverManager->getServerName());
+    ui->serverPasswordLineEdit->setText(m_serverManager->getPassword());
+    ui->adminPasswordLineEdit->setText(m_serverManager->getAdminPassword());
+    ui->maxPlayersSpinBox->setValue(m_serverManager->getMaxPlayers());
+    ui->checkBoxGameModePublic->setChecked(m_serverManager->getGamemodePublic());
+    ui->checkBoxCustomContentConfig->setChecked(m_serverManager->getCustomContentConfig());
 }
 
 ServerConfig::~ServerConfig()
@@ -30,7 +36,12 @@ void ServerConfig::on_buttonBox_clicked(QAbstractButton *button)
         close = true;
     case QDialogButtonBox::Apply:
         m_accept = true;
-        //TODO save server settings
+        m_serverManager->setServerName(ui->serverNameLineEdit->text());
+        m_serverManager->setPassword(ui->serverPasswordLineEdit->text());
+        m_serverManager->setAdminPassword(ui->adminPasswordLineEdit->text());
+        m_serverManager->setMaxPlayers(ui->maxPlayersSpinBox->value());
+        m_serverManager->setGamemodePublic(ui->checkBoxGameModePublic->isChecked());
+        m_serverManager->setCustomContentConfig(ui->checkBoxCustomContentConfig->isChecked());
         break;
     case QDialogButtonBox::Cancel:
         close = true;

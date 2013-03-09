@@ -25,13 +25,16 @@ ServerManager::ServerManager(QSettings* settings)
 {
     m_settings = settings;
 
+    CUSTOM_CONTENT_CONFIG_FILE = "jackalContentGenConfig.xml";
+
     m_serverName = m_settings->value("server/serverName", "Jackal Mod Manager Server").toString();
-    m_maxPlayers = m_settings->value("settings/onlineHelpUrl", 8).toInt();
+    m_maxPlayers = m_settings->value("server/maxPlayers", 8).toInt();
     m_gamemodePublic = m_settings->value("server/gamemodePublic", true).toBool();
-    m_usePassword = m_settings->value("server/usePassword", false).toBool();
-    m_password = m_settings->value("server/password", "default").toString();
+    m_password = m_settings->value("server/password", "").toString();
     m_adminPassword = m_settings->value("server/adminPassword", "default").toString();
     m_customContentConfig = m_settings->value("server/customContentConfig", false).toBool();
+
+    m_serverProcess = new QProcess;
 }
 
 ServerManager::~ServerManager()
@@ -40,5 +43,29 @@ ServerManager::~ServerManager()
 
 void ServerManager::launch()
 {
-    //TODO "TDLServerMain.exe" --dedicated --maxplayers=8 --gamemode=public --servername="Jackal Mod Manager Server" --adminpass="password" --contentconfig="joesContentConfig.xml"
+    QString exe = "start \"tst\" /D \"C:\\Sandswept Studios\\The Dead Linger Alpha\" TDLServerMain.exe --dedicated";
+    QString maxPlayers;
+    QTextStream maxPlayersStream(&maxPlayers);
+    QString gamePath = m_settings->value("game/path").toString();
+    for(int i=0; i<gamePath.length(); i++)
+    {
+        if(gamePath[i] == QChar('/'))
+            gamePath[i] = QChar('\\');
+    }
+    maxPlayersStream << m_maxPlayers;
+    QStringList args;
+    args << "\"TDL Dedicated Server\""
+         << "/D\"" + gamePath + "\""
+         << "TDLServerMain.exe"
+         << "--dedicated"
+         << "--servername=\"" + m_serverName + "\""
+         << "--maxplayers=" + maxPlayers
+         << (m_gamemodePublic ? "--gamemode=public" : "--gamemode=protected")
+         << "--adminpass=\"" + m_adminPassword + "\"";
+    if(!m_password.isEmpty() && !m_password.isNull())
+        args << "--password=\"" + m_password + "\"";
+    if(m_customContentConfig)
+        args << "--contentconfig=" + CUSTOM_CONTENT_CONFIG_FILE;
+    m_serverProcess->start(exe);//, args);
+    qDebug() << "Starting dedicated server:" << exe << args;
 }
