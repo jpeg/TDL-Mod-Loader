@@ -43,24 +43,23 @@ ServerManager::~ServerManager()
 
 void ServerManager::launch()
 {
-    QString exe = "start";
-    QString maxPlayers;
-    QTextStream maxPlayersStream(&maxPlayers);
     QString gamePath = m_settings->value("game/path").toString();
     for(int i=0; i<gamePath.length(); i++)
     {
         if(gamePath[i] == QChar('/'))
             gamePath[i] = QChar('\\');
     }
+    if(gamePath[gamePath.length()-1] != '\\')
+        gamePath.append('\\');
+    QString exe = gamePath + "TDLServerMain.exe";
+
+    QString maxPlayers;
+    QTextStream maxPlayersStream(&maxPlayers);
     maxPlayersStream << m_maxPlayers;
 
     // Argument list
     QStringList args;
-    args << "TDL Dedicated Server"
-         << "/D"
-         << gamePath
-         << "TDLServerMain.exe"
-         << "--dedicated"
+    args << "--dedicated"
          << "--servername=" + m_serverName
          << "--maxplayers=" + maxPlayers
          << (m_gamemodePublic ? "--gamemode=public" : "--gamemode=protected")
@@ -71,6 +70,6 @@ void ServerManager::launch()
         args << "--contentconfig=" + CUSTOM_CONTENT_CONFIG_FILE;
 
     // Start server executable
-    m_serverProcess->start(exe, args);
     qDebug() << "Starting dedicated server:" << exe << args;
+    qDebug() << "Dedicated server started:" << m_serverProcess->startDetached(exe, args, gamePath);
 }
