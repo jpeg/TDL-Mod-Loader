@@ -77,6 +77,8 @@ public:
 
 public:
     QString MOD_HEADER; //pretend this is const
+    QString MODE_MARKER;
+    QString OPTION_MARKER;
     QString MODS_DIR;
 
 private:
@@ -91,14 +93,19 @@ private:
         QString name;
         QVector<QString> plugins;
         QVector<QString> resources;
+        int activeMode;
+        QVector<bool> activeOptions;
     };
     QVector<ModConfig*> m_modList;
 
 public:
-    ErrorCode init(const QString& versionFilename, const QString& pluginsFilename, const QString& resourcesFilename, QVector<QString>& activeMods);
+    ErrorCode init(const QString& versionFilename, const QString& pluginsFilename, const QString& resourcesFilename,
+                   QVector<QString>& activeMods, QVector<int>& activeModes, QVector<QVector<int>*>& activeOptions);
     int getVersion();
     int addPlugin(int mod, const QString& modName, const QString& plugin);
     int addResource(int mod, const QString& modName, const QString& resource);
+    void setActiveMode(int mod, int mode);
+    void setActiveOptions(int mod, QVector<bool>& options);
     ErrorCode save();
     void swap(int mod1, int mod2);
     void remove(int mod);
