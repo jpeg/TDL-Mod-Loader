@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     QCoreApplication::setOrganizationName("Utudio");
     QCoreApplication::setApplicationName("Jackal Mod Manager");
-    QCoreApplication::setApplicationVersion("0.2.0");
+    QCoreApplication::setApplicationVersion("0.3.0");
 
     // Load icons
     iconFolder = new QIcon(":/icons/folder.png");
