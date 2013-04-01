@@ -104,12 +104,15 @@ public:
     int getVersion();
     int addPlugin(int mod, const QString& modName, const QString& plugin);
     int addResource(int mod, const QString& modName, const QString& resource);
-    void setActiveMode(int mod, int mode);
-    void setActiveOptions(int mod, QVector<bool>& options);
+    int setActiveMode(int mod, const QString& modName, int mode);
+    int setActiveOptions(int mod, const QString& modName, QVector<bool>& options);
     ErrorCode save();
     void swap(int mod1, int mod2);
     void remove(int mod);
     void removeAll();
+
+private:
+    int addMod(int mod, const QString& modName);
 };
 
 #endif // CONFIGMODIFIER_H

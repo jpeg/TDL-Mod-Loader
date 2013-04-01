@@ -132,7 +132,7 @@ public:
         QString description;
         QVector<QString> commonPlugins;
         QVector<QString> commonResources;
-        unsigned int enabledMode;
+        int enabledMode;
         QVector<Optional*> modes;
         QVector<Optional*> options;
         bool refreshScriptCache;

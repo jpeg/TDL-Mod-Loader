@@ -309,7 +309,7 @@ ErrorCode ModManager::load()
                     m_enabledModOrder.push_back(m_mods[j]);
 
                     // Set active mode
-                    if(activeModes[i] < m_mods[j]->modes.size())
+                    if(activeModes[i] < m_mods[j]->modes.size() && activeModes[i] >= 0)
                         m_mods[j]->enabledMode = activeModes[i];
                     else
                         m_mods[j]->enabledMode = 0;
@@ -779,14 +779,16 @@ void ModManager::addModGameConfig(int enabledMod, Mod* modPtr)
         installPlugin(enabledMod, modPtr->name, modPtr->commonPlugins[i]);
     for(int i=0; i<modPtr->commonResources.size(); i++)
         m_gameConfig->addResource(enabledMod, modPtr->name, modPtr->commonResources[i]);
-    if(modPtr->enabledMode < (unsigned int)modPtr->modes.size())
+
+    if(modPtr->enabledMode < modPtr->modes.size() && modPtr->enabledMode >= 0)
     {
-        m_gameConfig->setActiveMode(enabledMod, modPtr->enabledMode);
+        m_gameConfig->setActiveMode(enabledMod, modPtr->name, modPtr->enabledMode);
         for(int i=0; i<modPtr->modes[modPtr->enabledMode]->plugins.size(); i++)
             installPlugin(enabledMod, modPtr->name, modPtr->modes[modPtr->enabledMode]->plugins[i]);
         for(int i=0; i<modPtr->modes[modPtr->enabledMode]->resources.size(); i++)
             m_gameConfig->addResource(enabledMod, modPtr->name, modPtr->modes[modPtr->enabledMode]->resources[i]);
     }
+
     QVector<bool> enabledOptions;
     for(int j=0; j<modPtr->options.size(); j++)
     {
@@ -799,7 +801,7 @@ void ModManager::addModGameConfig(int enabledMod, Mod* modPtr)
                 m_gameConfig->addResource(enabledMod, modPtr->name, modPtr->options[j]->resources[i]);
         }
     }
-    m_gameConfig->setActiveOptions(enabledMod, enabledOptions);
+    m_gameConfig->setActiveOptions(enabledMod, modPtr->name, enabledOptions);
 }
 
 bool ModManager::deleteDir(const QString& path)

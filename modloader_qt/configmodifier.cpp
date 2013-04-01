@@ -66,6 +66,7 @@ ErrorCode ConfigModifier::init(const QString &versionFilename, const QString &pl
         return Error::FAILED_OPEN_RESOURCES_FILE;
     QTextStream pluginsIn(&vanillaPluginsFile);
     QTextStream resourcesIn(&vanillaResourcesFile);
+
     while(!pluginsIn.atEnd())
     {
         QString line = pluginsIn.readLine();
@@ -73,6 +74,7 @@ ErrorCode ConfigModifier::init(const QString &versionFilename, const QString &pl
             break; //figure out loaded plugins based on resources file
         m_vanillaPlugins.push_back(line);
     }
+
     bool vanilla = true;
     while(!resourcesIn.atEnd())
     {
@@ -138,6 +140,7 @@ ErrorCode ConfigModifier::init(const QString &versionFilename, const QString &pl
             }
         }
     }
+
     vanillaPluginsFile.close();
     vanillaResourcesFile.close();
 
@@ -149,56 +152,63 @@ int ConfigModifier::getVersion()
     return m_version;
 }
 
-int ConfigModifier::addPlugin(int mod, const QString& modName, const QString& plugin)
+int ConfigModifier::addMod(int mod, const QString& modName)
 {
-    if(mod < m_modList.size() && mod >= 0)
-    {
-        m_modList[mod]->name = modName;
-        m_modList[mod]->plugins.push_back(plugin);
-        return mod;
-    }
-    else
+    if(!(mod < m_modList.size() && mod >= 0))
     {
         ModConfig* m = new ModConfig;
         m->name = modName;
-        m->plugins.push_back(plugin);
         m_modList.push_back(m);
-        return m_modList.size() - 1; //id for new mod
+        mod = m_modList.size() - 1; //id for new mod
     }
+
+    return mod;
+}
+
+int ConfigModifier::addPlugin(int mod, const QString& modName, const QString& plugin)
+{
+    if(mod < m_modList.size() && mod >= 0)
+        m_modList[mod]->name = modName;
+    else
+        mod = addMod(mod, modName);
+
+    m_modList[mod]->plugins.push_back(plugin);
+    return mod;
 }
 
 int ConfigModifier::addResource(int mod, const QString &modName, const QString &resource)
 {
     if(mod < m_modList.size() && mod >= 0)
-    {
         m_modList[mod]->name = modName;
-        m_modList[mod]->resources.push_back(resource);
-        return mod;
-    }
     else
-    {
-        ModConfig* m = new ModConfig;
-        m->name = modName;
-        m->resources.push_back(resource);
-        m_modList.push_back(m);
-        return m_modList.size() - 1; //id for new mod
-    }
+        mod = addMod(mod, modName);
+
+    m_modList[mod]->resources.push_back(resource);
+    return mod;
 }
 
-void ConfigModifier::setActiveMode(int mod, int mode)
+int ConfigModifier::setActiveMode(int mod, const QString& modName, int mode)
 {
     if(mod < m_modList.size() && mod >= 0)
-        m_modList[mod]->activeMode = mode;
+        m_modList[mod]->name = modName;
+    else
+        mod = addMod(mod, modName);
+
+    m_modList[mod]->activeMode = mode;
+    return mod;
 }
 
-void ConfigModifier::setActiveOptions(int mod, QVector<bool>& options)
+int ConfigModifier::setActiveOptions(int mod, const QString& modName, QVector<bool>& options)
 {
     if(mod < m_modList.size() && mod >= 0)
-    {
-        m_modList[mod]->activeOptions.clear();
-        for(int i=0; i<options.size(); i++)
-            m_modList[mod]->activeOptions.push_back(options[i]);
-    }
+        m_modList[mod]->name = modName;
+    else
+        mod = addMod(mod, modName);
+
+    m_modList[mod]->activeOptions.clear();
+    for(int i=0; i<options.size(); i++)
+        m_modList[mod]->activeOptions.push_back(options[i]);
+    return mod;
 }
 
 ErrorCode ConfigModifier::save()
