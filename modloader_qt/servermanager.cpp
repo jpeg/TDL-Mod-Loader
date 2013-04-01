@@ -28,7 +28,7 @@ ServerManager::ServerManager(QSettings* settings)
     CUSTOM_CONTENT_CONFIG_FILE = "jackalContentGenConfig.xml";
 
     m_serverName = m_settings->value("server/serverName", "Jackal Mod Manager Server").toString();
-    m_maxPlayers = m_settings->value("server/maxPlayers", 8).toInt();
+    m_maxPlayers = m_settings->value("server/maxPlayers", 16).toInt();
     m_gamemodePublic = m_settings->value("server/gamemodePublic", true).toBool();
     m_password = m_settings->value("server/password", "").toString();
     m_adminPassword = m_settings->value("server/adminPassword", "default").toString();
