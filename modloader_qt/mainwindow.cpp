@@ -291,16 +291,26 @@ void MainWindow::on_buttonInstallMod_clicked()
         return;
 
     int numMods = modManager->getMods()->size();
-    ErrorCode error = modManager->install(modArchive);
-    showError(error);
-    if(error == Error::NO_ERROR && modManager->getMods()->size() > numMods)
-    {
-        // New mod added, add it to list
-        QStandardItem* modItem = new QStandardItem(*iconDisabledMod, modManager->getMods()->back()->prettyName);
-        modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
-        allModsItem->appendRow(modItem);
+    int modIndex = -1;
 
-        updateStatusBar("Installed mod: " + modManager->getMods()->back()->prettyName);
+    ErrorCode error = modManager->install(modArchive, modIndex);
+    showError(error);
+    if(error == Error::NO_ERROR)
+    {
+        if(modManager->getMods()->size() > numMods)
+        {
+            // New mod added, add it to list
+            QStandardItem* modItem = new QStandardItem(*iconDisabledMod, modManager->getMods()->back()->prettyName);
+            modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
+            allModsItem->appendRow(modItem);
+
+            updateStatusBar("Installed mod: " + modManager->getMods()->back()->prettyName);
+        }
+        else
+        {
+            // Updated mod, disable it
+            enableMod(modIndex, true);
+        }
     }
 
     // Refresh mod info displayed
@@ -310,21 +320,16 @@ void MainWindow::on_buttonInstallMod_clicked()
 
 void MainWindow::on_buttonEnableMod_clicked()
 {
-    int modIndex = getSelectedModIndex();
+    enableMod(getSelectedModIndex());
+}
 
+void MainWindow::enableMod(int modIndex, bool forceDisable)
+{
     if(modIndex >= 0)
     {
-        if(modManager->getMods()->at(modIndex)->enabled)
+        if(modManager->getMods()->at(modIndex)->enabled || forceDisable)
         {
             // Disable mod
-            for(int i=0; i<modManager->getEnabledModOrder()->size(); i++)
-            {
-                if(modManager->getMods()->at(modIndex) == modManager->getEnabledModOrder()->at(i))
-                {
-                    enabledModsItem->removeRow(i);
-                    break;
-                }
-            }
             allModsItem->child(modIndex)->setIcon(*iconDisabledMod);
             ui->buttonEnableMod->setText("Enable");
             ui->buttonEnableMod->setIcon(*iconAddMod);
@@ -342,6 +347,15 @@ void MainWindow::on_buttonEnableMod_clicked()
                     modManager->refreshInventory();
             }
             showError(modManager->save());
+
+            // Regen enabled mod listing
+            enabledModsItem->removeRows(0,enabledModsItem->rowCount());
+            for(int i=0; i<modManager->getEnabledModOrder()->size(); i++)
+            {
+                QStandardItem* modItem = new QStandardItem(*iconEnabledMod, modManager->getEnabledModOrder()->at(i)->prettyName);
+                modItem->setFlags(modItem->flags() & ~Qt::ItemIsEditable);
+                enabledModsItem->appendRow(modItem);
+            }
 
             updateStatusBar("Disabled mod: " + modManager->getMods()->at(modIndex)->prettyName);
         }

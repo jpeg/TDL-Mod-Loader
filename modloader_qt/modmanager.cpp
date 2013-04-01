@@ -118,7 +118,7 @@ bool ModManager::checkDataDirectory(const QString& dataDirectory)
     return m_dataDirValid;
 }
 
-ErrorCode ModManager::install(const QString& modArchivePath)
+ErrorCode ModManager::install(const QString& modArchivePath, int& existingMod)
 {
     qDebug() << "Installing mod" << modArchivePath;
 
@@ -146,7 +146,7 @@ ErrorCode ModManager::install(const QString& modArchivePath)
         }
 
         // If a version of this mod already is installed remove it
-        int existingMod = -1;
+        existingMod = -1;
         for(int i=0; i<m_mods.size(); i++)
         {
             if(m_mods[i]->name == newMod->name)

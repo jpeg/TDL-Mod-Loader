@@ -156,7 +156,7 @@ private:
 public:
     bool checkGameDirectory(const QString& gameDirectory);
     bool checkDataDirectory(const QString& dataDirectory);
-    ErrorCode install(const QString& modArchivePath);
+    ErrorCode install(const QString& modArchivePath, int& existingMod);
     ErrorCode remove(int mod, bool keepSpot = false);
     ErrorCode load();
     bool getGameDirectoryValid();

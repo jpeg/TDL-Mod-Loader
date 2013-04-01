@@ -55,6 +55,7 @@ public:
 
 private:
     void showError(ErrorCode error);
+    void enableMod(int modIndex, bool forceDisable = false);
     int getSelectedModIndex();
     void updateStatusBar(QString message);
     
