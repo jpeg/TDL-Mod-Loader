@@ -26,7 +26,7 @@ ConfigModifier::ConfigModifier()
     MOD_HEADER = "#[Mods]"; //not commenting out will result in TDL ignoring mods section
     MODE_MARKER = "#MODE ";
     OPTION_MARKER = "#OPTION ";
-    MODS_DIR = "mods/";
+    MODS_DIR = "content/exported/Mods/";
     m_version = -1;
 }
 
